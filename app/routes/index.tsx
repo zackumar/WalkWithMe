@@ -8,13 +8,52 @@ const loader = new Loader({
   libraries: ['places'],
 });
 
+export async function getRoute(
+  goo: typeof google,
+  origin: string | google.maps.LatLng | google.maps.Place,
+  destination: string | google.maps.LatLng | google.maps.Place,
+  waypoints?: google.maps.DirectionsWaypoint[]
+) {
+  var directionsService = new goo.maps.DirectionsService();
+  if (waypoints == null) {
+    var request = {
+      origin: origin,
+      destination: destination,
+      travelMode: google.maps.TravelMode.WALKING,
+    };
+    return directionsService.route(
+      request,
+      function (result: any, status: any) {
+        if (status == google.maps.DirectionsStatus.OK) {
+          return result;
+        }
+      }
+    );
+  } else {
+    var request2 = {
+      origin: origin,
+      destination: destination,
+      travelMode: google.maps.TravelMode.WALKING,
+      waypoints: waypoints,
+    };
+    return directionsService.route(
+      request2,
+      function (result: any, status: any) {
+        if (status == google.maps.DirectionsStatus.OK) {
+          return result;
+        }
+      }
+    );
+  }
+}
+
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loader
       .load()
-      .then((google) => {
+      .then(async (google) => {
         if (mapRef.current) {
           const map = new google.maps.Map(mapRef.current, {
             center: { lat: 29.58343962451892, lng: -98.62006139828749 },
@@ -42,12 +81,24 @@ export default function Index() {
             icon: svgMarker,
             map: map,
           });
+
+          const directionsRenderer = new google.maps.DirectionsRenderer();
+
+          directionsRenderer.setMap(map);
+
+          directionsRenderer.setDirections(
+            await getRoute(
+              google,
+              'UTSA',
+              '201 springtree trail, cibolo, tx 78108'
+            )
+          );
         }
       })
       .catch((e) => {
         console.error(e);
       });
-  }, [mapRef, loader]);
+  }, [mapRef]);
 
   return (
     <main className="relative min-h-screen bg-gray-500">
