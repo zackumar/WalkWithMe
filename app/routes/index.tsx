@@ -1,7 +1,9 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import { ActionArgs, json } from '@remix-run/cloudflare';
+import type { ActionArgs } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
 import { Form, Link, useActionData } from '@remix-run/react';
-import { ChangeEventHandler, useEffect, useRef, useState } from 'react';
+import type { ChangeEventHandler } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const loader = new Loader({
   apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
@@ -74,14 +76,14 @@ export const action = async ({ request }: ActionArgs) => {
   const formData = await request.formData();
 
   const submitType = formData.get('submit');
-  const pickup = formData.get('pickup');
-  const destination = formData.get('destination');
+  const pickup = formData.get('pickup') as string;
+  const dropoff = formData.get('dropoff') as string;
 
   if (submitType === 'details') {
     return json({
       route: {
         pickup,
-        destination,
+        dropoff,
       },
     });
   }
@@ -91,6 +93,7 @@ export const action = async ({ request }: ActionArgs) => {
 
 export default function Index() {
   const data = useActionData();
+  console.log(data);
   const mapRef = useRef<HTMLDivElement>(null);
 
   const [pickupValue, setPickupValue] = useState('');
@@ -140,24 +143,29 @@ export default function Index() {
 
           setGoogle(google);
           setMap(map);
-
-          // const directionsRenderer = new google.maps.DirectionsRenderer();
-
-          // directionsRenderer.setMap(map);
-
-          // directionsRenderer.setDirections(
-          //   await getRoute(
-          //     google,
-          //     'UTSA',
-          //     '201 springtree trail, cibolo, tx 78108'
-          //   )
-          // );
         }
       })
       .catch((e) => {
         console.error(e);
       });
   }, [mapRef]);
+
+  useEffect(() => {
+    if (!data) return;
+
+    const effect = async () => {
+      if (!goo) return;
+      const directionsRenderer = new goo.maps.DirectionsRenderer();
+
+      directionsRenderer.setMap(map);
+
+      directionsRenderer.setDirections(
+        await getRoute(google, data.route.pickup, data.route.dropoff)
+      );
+    };
+
+    effect();
+  }, [goo, map, data]);
 
   return (
     <div className="min-h-screen relative ">
@@ -176,7 +184,10 @@ export default function Index() {
         </div>
         <section className="absolute bottom-10 left-10 h-3/4 w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
           <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
-          <Form className="space-y-2 flex flex-col justify-between h-[90%]" method="post">
+          <Form
+            className="space-y-2 flex flex-col justify-between h-[90%]"
+            method="post"
+          >
             <div>
               <input
                 className="border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
@@ -210,7 +221,8 @@ export default function Index() {
                 {places.map((place: any) => {
                   return (
                     <li key={place.place_id}>
-                      <button className='hover:bg-indigo-100 rounded-sm'
+                      <button
+                        className="hover:bg-indigo-100 rounded-sm"
                         onClick={() => {
                           console.log(pickupFocused, dropoffFocused);
                           if (pickupFocused) {
