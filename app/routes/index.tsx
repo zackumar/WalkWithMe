@@ -7,6 +7,7 @@ import {
   addRoute,
   auth,
   endRoute,
+  isRouteFinished,
   isRouteStarted,
   startWalking,
 } from '~/firebase';
@@ -165,6 +166,9 @@ export default function Index() {
         isRouteStarted(routeId).then((isStarted) => {
           setRouteStarted(isStarted.isStarted);
           setBuddyName(isStarted.buddyName);
+        });
+        isRouteFinished(routeId).then((finished) => {
+          if (finished) clearInterval(interval);
         });
       }, 2000);
     }
