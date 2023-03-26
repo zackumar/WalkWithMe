@@ -4,6 +4,9 @@ import { json } from '@remix-run/cloudflare';
 import { Form, Link, useActionData } from '@remix-run/react';
 import type { ChangeEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from '../firebase';
+import { logout, signInWithGoogle } from '../firebase';
 
 const loader = new Loader({
   apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
@@ -124,6 +127,7 @@ export default function Index() {
       setPlaces(places as []);
     });
   };
+  const [user] = useAuthState(auth);
 
   useEffect(() => {
     loader
@@ -177,6 +181,27 @@ export default function Index() {
           ></span>
           <p className="text-lg font-semibold text-black">RowdyBuddy</p>
         </Link>
+        <div className="flex flex-row items-center space-x-5">
+        {!user ? (
+          <button
+          className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+          onClick={signInWithGoogle}
+        >
+          Log in
+        </button>
+        ) : (
+          <>
+            <h2 className="font-medium text-lg">Hi, {user.displayName}</h2>
+            <button
+              className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+              onClick={logout}
+            >
+              Log out
+            </button>
+          </>
+        )}
+      </div>
+              
       </header>
       <main className="relative bg-gray-500">
         <div className="fixed top-0 left-0 right-0 md:relative ">
