@@ -1,14 +1,10 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import { useActionData } from '@remix-run/react';
 
 import { useEffect, useRef, useState } from 'react';
-
-//test
 
 import {
   auth,
   deleteRoute,
-  endRoute,
   getRoutes,
   isRouteFinished,
   startRoute,
@@ -126,6 +122,12 @@ export default function BuddySystem() {
     const directionsRenderer = new goo.maps.DirectionsRenderer();
 
     directionsRenderer.setMap(map);
+
+    directionsRenderer.setOptions({
+      polylineOptions: {
+        strokeColor: '#818CF8',
+      },
+    });
 
     directionsRenderer.setDirections(
       await getRoute(

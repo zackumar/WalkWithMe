@@ -9,6 +9,7 @@ import {
   endRoute,
   isRouteFinished,
   isRouteStarted,
+  signInWithGoogle,
   startWalking,
 } from '~/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -136,7 +137,7 @@ export default function Index() {
           strokeColor: '#818CF8',
         },
       });
-      
+
       directionsRenderer.setDirections(
         await getRoute(google, pickupValue, dropoffValue)
       );
@@ -272,7 +273,22 @@ export default function Index() {
           <div className="h-screen w-screen" id="map" ref={mapRef}></div>
         </div>
         <section className="absolute inset-2 top-1/2 md:top-[unset] md:left-10 md:bottom-10 md:h-3/4 md:w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
-          {!started ? (
+          {!user ? (
+            <div className="flex flex-col h-full">
+              <div className="grow flex flex-col justify-center items-center">
+                <h1 className="font-bold text-2xl text-slate-800 text-center">
+                  Howdy Runner! Please log in to get started!
+                </h1>
+              </div>
+              <button
+                className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                onClick={signInWithGoogle}
+              >
+                Log in
+              </button>
+            </div>
+          ) : null}
+          {!started && user ? (
             <>
               {' '}
               <h1 className="font-bold text-2xl text-slate-800">
@@ -298,17 +314,19 @@ export default function Index() {
                         setDropoffFocused(false);
                       }}
                     ></input>
-                    <button
-                      className="fill-indigo-400 absolute right-4 top-4 w-8 h-8"
-                      onClick={getCurrentLocation}
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 512 512"
+                    {!isRequestPage ? (
+                      <button
+                        className="fill-indigo-400 absolute right-4 top-4 w-8 h-8"
+                        onClick={getCurrentLocation}
                       >
-                        <path d="M256 0c17.7 0 32 14.3 32 32V66.7C368.4 80.1 431.9 143.6 445.3 224H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H445.3C431.9 368.4 368.4 431.9 288 445.3V480c0 17.7-14.3 32-32 32s-32-14.3-32-32V445.3C143.6 431.9 80.1 368.4 66.7 288H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H66.7C80.1 143.6 143.6 80.1 224 66.7V32c0-17.7 14.3-32 32-32zM128 256a128 128 0 1 0 256 0 128 128 0 1 0 -256 0zm128-80a80 80 0 1 1 0 160 80 80 0 1 1 0-160z" />
-                      </svg>
-                    </button>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 512 512"
+                        >
+                          <path d="M256 0c17.7 0 32 14.3 32 32V66.7C368.4 80.1 431.9 143.6 445.3 224H480c17.7 0 32 14.3 32 32s-14.3 32-32 32H445.3C431.9 368.4 368.4 431.9 288 445.3V480c0 17.7-14.3 32-32 32s-32-14.3-32-32V445.3C143.6 431.9 80.1 368.4 66.7 288H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H66.7C80.1 143.6 143.6 80.1 224 66.7V32c0-17.7 14.3-32 32-32zM128 256a128 128 0 1 0 256 0 128 128 0 1 0 -256 0zm128-80a80 80 0 1 1 0 160 80 80 0 1 1 0-160z" />
+                        </svg>
+                      </button>
+                    ) : null}
                   </div>
                   <input
                     className="border border-t-0 border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
