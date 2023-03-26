@@ -1,7 +1,7 @@
 import { Loader } from '@googlemaps/js-api-loader';
 import { ActionArgs, json } from '@remix-run/cloudflare';
 import { Form, Link, useActionData } from '@remix-run/react';
-import { useEffect, useRef } from 'react';
+import { ChangeEventHandler, useEffect, useRef, useState } from 'react';
 
 const loader = new Loader({
   apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
@@ -9,14 +9,16 @@ const loader = new Loader({
   libraries: ['places'],
 });
 
-
-export async function getPlaces(goog: typeof google,locQuery: string, map: google.maps.Map){
-
+export async function getPlaces(
+  goog: typeof google,
+  locQuery: string,
+  map: google.maps.Map
+) {
   return new Promise((resolve, reject) => {
     const request = {
       query: locQuery,
     };
-  
+
     const service = new goog.maps.places.PlacesService(map);
 
     service.textSearch(request, (results, status) => {
@@ -28,7 +30,6 @@ export async function getPlaces(goog: typeof google,locQuery: string, map: googl
     });
   });
 }
-
 
 export async function getRoute(
   goo: typeof google,
@@ -88,11 +89,38 @@ export const action = async ({ request }: ActionArgs) => {
   return null;
 };
 
-
 export default function Index() {
   const data = useActionData();
-
   const mapRef = useRef<HTMLDivElement>(null);
+
+  const [pickupValue, setPickupValue] = useState('');
+  const [dropoffValue, setDropoffValue] = useState('');
+
+  const [goo, setGoogle] = useState<typeof google | null>(null);
+
+  const [places, setPlaces] = useState([]);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  const [pickupFocused, setPickupFocused] = useState(false);
+  const [dropoffFocused, setDropoffFocused] = useState(false);
+
+  const onPickupUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    if (!goo || !map) return;
+    setPickupValue(e.target.value);
+
+    getPlaces(goo, e.target.value, map).then((places) => {
+      setPlaces(places as []);
+    });
+  };
+
+  const onDropoffUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    if (!goo || !map) return;
+    setDropoffValue(e.target.value);
+
+    getPlaces(goo, e.target.value, map).then((places) => {
+      setPlaces(places as []);
+    });
+  };
 
   useEffect(() => {
     loader
@@ -109,22 +137,9 @@ export default function Index() {
             zoomControl: false,
             mapId: '7712e063257c268f',
           });
-          
-          const svgMarker = {
-            path: 'M10.453 14.016l6.563-6.609-1.406-1.406-5.156 5.203-2.063-2.109-1.406 1.406zM12 2.016q2.906 0 4.945 2.039t2.039 4.945q0 1.453-0.727 3.328t-1.758 3.516-2.039 3.070-1.711 2.273l-0.75 0.797q-0.281-0.328-0.75-0.867t-1.688-2.156-2.133-3.141-1.664-3.445-0.75-3.375q0-2.906 2.039-4.945t4.945-2.039z',
-            fillColor: '#f7a0a4',
-            fillOpacity: 0.9,
-            strokeWeight: 0,
-            rotation: 0,
-            scale: 2,
-            anchor: new google.maps.Point(15, 30),
-          };
 
-          const marker = new google.maps.Marker({
-            position: { lat: 29.58343962451892, lng: -98.62006139828749 },
-            icon: svgMarker,
-            map: map,
-          });
+          setGoogle(google);
+          setMap(map);
 
           const directionsRenderer = new google.maps.DirectionsRenderer();
 
@@ -169,18 +184,55 @@ export default function Index() {
                 type="text"
                 placeholder="Pickup"
                 required
+                value={pickupValue}
+                onChange={onPickupUpdate}
+                onFocus={() => {
+                  setPlaces([]);
+                  setPickupFocused(true);
+                }}
               ></input>
               <input
                 className="border border-t-0 border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
-                name="destination"
+                name="dropoff"
                 type="text"
                 placeholder="Drop off"
                 required
+                value={dropoffValue}
+                onChange={onDropoffUpdate}
+                onFocus={() => {
+                  setPlaces([]);
+                  setDropoffFocused(true);
+                }}
               ></input>
             </div>
+            {(dropoffFocused || pickupFocused) && places.length > 0 ? (
+              <ul className="grow overflow-y-scroll">
+                {places.map((place: any) => {
+                  return (
+                    <li key={place.place_id}>
+                      <button
+                        onClick={() => {
+                          console.log(pickupFocused, dropoffFocused);
+                          if (pickupFocused) {
+                            setPickupValue(place.formatted_address);
+                            setPickupFocused(false);
+                          }
+                          if (dropoffFocused) {
+                            setDropoffValue(place.formatted_address);
+                            setDropoffFocused(false);
+                          }
+                        }}
+                      >
+                        {place.formatted_address}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : null}
             {data ? (
               <div className="space-y-6">
-                <h2 className='text-xl font-semibold'>Your Trip</h2>
+                <h2 className="text-xl font-semibold">Your Trip</h2>
                 <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
                   <svg
                     viewBox="0 0 50 50"
@@ -191,8 +243,12 @@ export default function Index() {
                     <circle cx="25" cy="25" r="25" fill="#818CF8" />
                     <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
                   </svg>
-                  <p className='col-span-4 text-base overflow-hidden text-ellipsis whitespace-nowrap block text-start'>123 Sesame St.</p>
-                  <p className='col-span-1 text-xs text-right font-semibold'>Pick up</p>
+                  <p className="col-span-4 text-base overflow-hidden text-ellipsis whitespace-nowrap block text-start">
+                    123 Sesame St.
+                  </p>
+                  <p className="col-span-1 text-xs text-right font-semibold">
+                    Pick up
+                  </p>
                   {/* {data.route.pickup} */}
                 </div>
                 <div className="grid grid-cols-6 w-full">
@@ -205,8 +261,12 @@ export default function Index() {
                     <circle cx="25" cy="25" r="25" fill="#F9B8BB" />
                     <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
                   </svg>
-                  <p className='col-span-4 overflow-hidden text-ellipsis whitespace-nowrap block text-start'>501 W Cesar E Chavez Blvd, San Antonio</p>
-                  <p className='col-span-1 text-xs text-right font-semibold'>Drop-off</p>
+                  <p className="col-span-4 overflow-hidden text-ellipsis whitespace-nowrap block text-start">
+                    501 W Cesar E Chavez Blvd, San Antonio
+                  </p>
+                  <p className="col-span-1 text-xs text-right font-semibold">
+                    Drop-off
+                  </p>
                   {/* {data.route.destination} */}
                 </div>
                 {/* {data.route.pickup} to {data.route.destination} */}
