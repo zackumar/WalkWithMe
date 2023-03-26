@@ -4,12 +4,38 @@ import { json } from '@remix-run/cloudflare';
 import { Form, Link, useActionData } from '@remix-run/react';
 import type { ChangeEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  serverTimestamp,
+  orderBy,
+  deleteDoc,
+  doc,
+} from 'firebase/firestore';
+import { db, getRoutes } from '../firebase';
 
 const loader = new Loader({
   apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
   version: 'weekly',
   libraries: ['places'],
 });
+
+// export async function getRoutes() {
+//   const routes: any = [];
+//   const q = query(
+//     collection(db, 'routes'),
+//     orderBy('timestamp')
+//   );
+//   const docs = await getDocs(q);
+//   docs.forEach((doc) => {
+//     routes.push(doc);
+//   });
+//   console.log(routes);
+//   return routes;
+// }
 
 export async function getPlaces(
   goog: typeof google,
@@ -107,6 +133,8 @@ export default function BuddySystem() {
   const [pickupFocused, setPickupFocused] = useState(false);
   const [dropoffFocused, setDropoffFocused] = useState(false);
 
+  const [routes, setRoutes] = useState([]);
+
   const onPickupUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
     if (!goo || !map) return;
     setPickupValue(e.target.value);
@@ -126,6 +154,9 @@ export default function BuddySystem() {
   };
 
   useEffect(() => {
+    getRoutes().then((routes) => {
+      setRoutes(routes);
+    });
     loader
       .load()
       .then(async (google) => {
@@ -214,18 +245,30 @@ export default function BuddySystem() {
               ></input> */}
             </div>
             <div className='h-full'>
-              <div className='grid grid-cols-4 gap-1 p-[2px]'>
+              {routes && routes.length > 0 ? (
+                <ul>
+                  {routes.map((route: any) => {
+                    return (
+                      <div className='border border-slate-200 bg-slate-100 rounded-lg p-5 mb-5'>
+                        <div className='grid grid-cols-4 gap-1 p-[2px]'>
+                          <p className='border border-slate-200 bg-slate-100 rounded-lg p-5  w-full col-span-2'>{route.start}</p>
+                          <button className='border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center'>View Route</button>
+                          <button className='border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center'>Select Route</button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p>No routes</p>
+              )}
+              {/* <div className='grid grid-cols-4 gap-1 p-[2px]'>
                 <p className='border border-slate-200 bg-slate-100 rounded-lg p-5  w-full col-span-2'>John Smith</p>
                 <button className='border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center'>View Route</button>
                 <button className='border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center'>Select Route</button>
-              </div>
-              <div className='grid grid-cols-4 gap-1 p-[2px]'>
-                <p className='border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-2'>John Smith</p>
-                <button className='border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center'>View Route</button>
-                <button className='border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center'>Select Route</button>
-              </div>
+              </div> */}
             </div>
-            
+
 
             {(dropoffFocused || pickupFocused) && places.length > 0 ? (
               <ul className="grow overflow-y-scroll p-2">
