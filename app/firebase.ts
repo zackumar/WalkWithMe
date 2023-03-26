@@ -74,7 +74,7 @@ export async function getRoutes() {
   docs.forEach((doc: any) => {
     routes.push({ id: doc.id, ...doc.data() });
   });
-
+  
   return routes;
 }
 
