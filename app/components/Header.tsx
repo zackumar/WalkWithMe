@@ -19,18 +19,18 @@ export function Header() {
       <nav>
         {!user ? (
           <button
-            className="rounded-md p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+            className="rounded-md px-3 p-1 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
             onClick={signInWithGoogle}
           >
             Log In
           </button>
         ) : (
           <div className="flex flex-row space-x-4 items-center">
-            <h2 className="text-lg font-semibold whitespace-nowrap">
+            <h2 className="text-md font-semibold whitespace-nowrap">
               Hi, {user.displayName}
             </h2>
             <button
-              className="rounded-md p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+              className="rounded-md px-3 p-1 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
               onClick={logout}
             >
               Log Out

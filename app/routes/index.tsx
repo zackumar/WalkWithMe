@@ -3,7 +3,13 @@ import { Form, Link } from '@remix-run/react';
 import type { ChangeEventHandler, FormEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Header } from '../components/Header';
-import { addRoute, auth, isRouteStarted, startWalking } from '~/firebase';
+import {
+  addRoute,
+  auth,
+  endRoute,
+  isRouteStarted,
+  startWalking,
+} from '~/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 const loader = new Loader({
@@ -205,6 +211,21 @@ export default function Index() {
       });
     }
   }, [map]);
+
+  const onArrive = () => {
+    endRoute(routeId!);
+    setRouteId('');
+    setPickupValue('');
+    setDropoffValue('');
+    setPlaces([]);
+    setPickupFocused(false);
+    setDropoffFocused(false);
+    setIsRequestPage(false);
+    setIsRequested(false);
+    setRouteStarted(false);
+    setBuddyName('');
+    setWalking(false);
+  };
 
   return (
     <div className="min-h-screen relative ">
@@ -420,10 +441,7 @@ export default function Index() {
                 </div>
                 <button
                   className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-                  onClick={() => {
-                    setWalking(true);
-                    startWalking(routeId!);
-                  }}
+                  onClick={onArrive}
                 >
                   Arrived to Destination
                 </button>
