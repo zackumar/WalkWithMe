@@ -4,6 +4,7 @@ import { json } from '@remix-run/cloudflare';
 import { Form, Link, useActionData } from '@remix-run/react';
 import type { ChangeEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import {Header} from '../components/Header';
 
 const loader = new Loader({
   apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
@@ -169,15 +170,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen relative ">
-      <header className="absolute inset-x-0 top-0 z-10 flex flex-row justify-between p-5 bg-white">
-        <Link className="flex flex-row items-center space-x-2" to="/">
-          <span
-            className="h-5 w-5 rounded-full 
-        bg-[#818CF8]"
-          ></span>
-          <p className="text-lg font-semibold text-black">RowdyBuddy</p>
-        </Link>
-      </header>
+      <Header />
       <main className="relative bg-gray-500">
         <div className="top-0 left-0 right-0 relative">
           <div className="h-screen w-screen" id="map" ref={mapRef}></div>
