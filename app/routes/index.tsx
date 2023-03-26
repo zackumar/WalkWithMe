@@ -120,6 +120,7 @@ export default function Index() {
   const [buddyName, setBuddyName] = useState('');
 
   const [walking, setWalking] = useState(false);
+  const [intervalRunning, setIntervalRunning] = useState(false);
 
   const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -146,19 +147,24 @@ export default function Index() {
         ).id
       );
       setIsRequested(true);
+      setIntervalRunning(true);
     }
   };
 
   useEffect(() => {
     if (!routeId) return;
 
-    setInterval(() => {
-      isRouteStarted(routeId).then((isStarted) => {
-        setRouteStarted(isStarted.isStarted);
-        setBuddyName(isStarted.buddyName);
-      });
-    }, 5000);
-  }, [routeId]);
+    if (intervalRunning) {
+      var interval = setInterval(() => {
+        isRouteStarted(routeId).then((isStarted) => {
+          setRouteStarted(isStarted.isStarted);
+          setBuddyName(isStarted.buddyName);
+        });
+      }, 2000);
+    }
+
+    return () => clearInterval(interval);
+  }, [routeId, intervalRunning]);
 
   useEffect(() => {
     loader
@@ -225,6 +231,7 @@ export default function Index() {
     setRouteStarted(false);
     setBuddyName('');
     setWalking(false);
+    setIntervalRunning(false);
   };
 
   return (

@@ -109,6 +109,11 @@ export async function isRouteStarted(routeId: string) {
   return { isStarted: data?.started, buddyName: data?.buddyName };
 }
 
+export async function isRouteFinished(routeId: string) {
+  const data = (await getDoc(doc(db, 'routes', routeId))).data();
+  return !!data?.finished;
+}
+
 //adds a route given a start point, a midway point, and a destination
 export async function addRoute(
   userId: string,

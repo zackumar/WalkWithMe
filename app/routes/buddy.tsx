@@ -3,7 +3,14 @@ import { useActionData } from '@remix-run/react';
 
 import { useEffect, useRef, useState } from 'react';
 
-import { auth, endRoute, getRoutes, startRoute } from '../firebase';
+import {
+  auth,
+  deleteRoute,
+  endRoute,
+  getRoutes,
+  isRouteFinished,
+  startRoute,
+} from '../firebase';
 
 import { Header } from '../components/Header';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -90,13 +97,24 @@ export default function BuddySystem() {
       });
   }, [mapRef]);
 
+  const [routeId, setRouteId] = useState('');
+
   useEffect(() => {
     setInterval(() => {
-      getRoutes().then((routes) => {
-        setRoutes(routes);
-      });
-    }, 5000);
-  }, []);
+      if (!routeId) {
+        getRoutes().then((routes) => {
+          setRoutes(routes);
+        });
+      } else {
+        isRouteFinished(routeId).then((finished) => {
+          if (finished) {
+            deleteRoute(routeId);
+            setRouteId('');
+          }
+        });
+      }
+    }, 2000);
+  }, [routeId]);
 
   const viewRoute = async (
     pickup: string | google.maps.LatLng,
@@ -116,8 +134,6 @@ export default function BuddySystem() {
       )
     );
   };
-
-  const [routeId, setRouteId] = useState('');
 
   return (
     <div className="min-h-screen relative ">
