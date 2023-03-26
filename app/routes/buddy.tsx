@@ -138,15 +138,15 @@ export default function BuddySystem() {
   return (
     <div className="min-h-screen relative ">
       <Header />
-      <main className="relative bg-gray-500 grid grid-cols-2">
-        <section className="pt-24 h-full w-full bg-white p-5 shadow-lg space-y-5">
+      <main className="relative bg-gray-500 lg:grid lg:grid-cols-3 flex flex-col h-screen w-screen">
+        <section className="pt-24 h-[50vh] lg:h-full lg:w-full bg-white p-5 shadow-lg space-y-5 col-span-1">
           {!routeId ? (
             <>
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Buddy
               </h1>
               <div className="space-y-2 flex flex-col justify-between h-[90%]">
-                <div className="h-full">
+                <div className="h-full overflow-y-scroll">
                   {routes && routes.length > 0 ? (
                     <ul>
                       {routes.map((route: any) => {
@@ -275,8 +275,12 @@ export default function BuddySystem() {
             </>
           ) : null}
         </section>
-        <div className="h-full w-full">
-          <div className="h-screen w-[50wh]" id="map" ref={mapRef}></div>
+        <div className="lg:h-full w-full h-1/2">
+          <div
+            className="lg:h-screen h-[50vh] w-screen col-span-2"
+            id="map"
+            ref={mapRef}
+          ></div>
         </div>
       </main>
     </div>
