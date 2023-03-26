@@ -92,6 +92,12 @@ export async function startRoute(routeId: string, buddyName: string) {
   });
 }
 
+export async function startWalking(routeId: string) {
+  await updateDoc(doc(db, 'routes', routeId), {
+    walking: true,
+  });
+}
+
 export async function isRouteStarted(routeId: string) {
   const data = (await getDoc(doc(db, 'routes', routeId))).data();
   return { isStarted: data?.started, buddyName: data?.buddyName };

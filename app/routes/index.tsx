@@ -3,7 +3,7 @@ import { Form, Link } from '@remix-run/react';
 import type { ChangeEventHandler, FormEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { Header } from '../components/Header';
-import { addRoute, auth, isRouteStarted } from '~/firebase';
+import { addRoute, auth, isRouteStarted, startWalking } from '~/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
 const loader = new Loader({
@@ -112,6 +112,8 @@ export default function Index() {
   const [isRequested, setIsRequested] = useState(false);
   const [started, setRouteStarted] = useState(false);
   const [buddyName, setBuddyName] = useState('');
+
+  const [walking, setWalking] = useState(false);
 
   const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -339,13 +341,95 @@ export default function Index() {
                 </div>
               </Form>{' '}
             </>
-          ) : (
-            <div className="w-full h-full flex flex-col justify-center items-center">
-              <h1 className="text-3xl font-semibold text-center">
-                Your Buddy, {buddyName} is on their way to pick you up!
-              </h1>
+          ) : null}
+          {/* {started && !walking  */}
+          {started && !walking ? (
+            <div className="w-full h-full flex flex-col items-center">
+              <div className="grow flex flex-col items-center justify-center">
+                <h1 className="text-3xl font-medium text-center">
+                  Your Buddy, {buddyName}, is on their way to pick you up!
+                </h1>
+              </div>
+              <button
+                className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                onClick={() => {
+                  setWalking(true);
+                  startWalking(routeId!);
+                }}
+              >
+                Press here when buddy has arrived
+              </button>
             </div>
-          )}
+          ) : null}
+
+          {/* {walking  */}
+          {walking ? (
+            <div className="w-full h-full flex flex-col items-center">
+              <div className="grow flex flex-col items-center space-y-4">
+                <h1 className="text-3xl font-medium text-center">
+                  Your safety is our highest priority.
+                </h1>
+                <h2 className="text-center">
+                  If you ever feel like you are in danger, alert the police
+                  here.
+                </h2>
+                <button className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full">
+                  Alert
+                </button>
+              </div>
+              <div className="space-y-8">
+                <div className="space-y-6">
+                  <h2 className="text-xl font-semibold">Your Trip</h2>
+                  <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
+                    <svg
+                      viewBox="0 0 50 50"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                    >
+                      <circle cx="25" cy="25" r="25" fill="#818CF8" />
+                      <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
+                    </svg>
+                    <p className="col-span-4 text-base overflow-hidden text-ellipsis whitespace-nowrap block text-start">
+                      {pickupValue}
+                    </p>
+                    <p className="col-span-1 text-xs text-right font-semibold">
+                      Pick up
+                    </p>
+                    {/* {data.route.pickup} */}
+                  </div>
+                  <div className="grid grid-cols-6 w-full">
+                    <svg
+                      viewBox="0 0 50 50"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-6 w-6"
+                    >
+                      <circle cx="25" cy="25" r="25" fill="#F9B8BB" />
+                      <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
+                    </svg>
+                    <p className="col-span-4 overflow-hidden text-ellipsis whitespace-nowrap block text-start">
+                      {dropoffValue}
+                    </p>
+                    <p className="col-span-1 text-xs text-right font-semibold">
+                      Drop-off
+                    </p>
+                    {/* {data.route.destination} */}
+                  </div>
+                  {/* {data.route.pickup} to {data.route.destination} */}
+                </div>
+                <button
+                  className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                  onClick={() => {
+                    setWalking(true);
+                    startWalking(routeId!);
+                  }}
+                >
+                  Arrived to Destination
+                </button>
+              </div>
+            </div>
+          ) : null}
         </section>
       </main>
     </div>
