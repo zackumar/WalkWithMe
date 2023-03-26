@@ -97,6 +97,9 @@ export default function BuddySystem() {
 
   const [routeId, setRouteId] = useState('');
 
+  const [directionsRenderer, setDirectionsRenderer] =
+    useState<google.maps.DirectionsRenderer | null>(null);
+
   useEffect(() => {
     setInterval(() => {
       if (!routeId) {
@@ -106,20 +109,26 @@ export default function BuddySystem() {
       } else {
         isRouteFinished(routeId).then((finished) => {
           if (finished) {
+            directionsRenderer?.setMap(null);
             deleteRoute(routeId);
             setRouteId('');
           }
         });
       }
     }, 2000);
-  }, [routeId]);
+  }, [routeId, directionsRenderer]);
+
+  useEffect(() => {
+    if (!goo || !map) return;
+    setDirectionsRenderer(new goo.maps.DirectionsRenderer());
+  }, [goo, map]);
 
   const viewRoute = async (
     pickup: string | google.maps.LatLng,
     dropoff: string | google.maps.LatLng
   ) => {
     if (!goo) return;
-    const directionsRenderer = new goo.maps.DirectionsRenderer();
+    if (!directionsRenderer) return;
 
     directionsRenderer.setMap(map);
 

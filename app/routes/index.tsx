@@ -123,12 +123,14 @@ export default function Index() {
 
   const [walking, setWalking] = useState(false);
   const [intervalRunning, setIntervalRunning] = useState(false);
+  const [directionsRenderer, setDirectionsRenderer] =
+    useState<google.maps.DirectionsRenderer | null>(null);
 
   const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     if (!isRequestPage) {
       if (!goo) return;
-      const directionsRenderer = new goo.maps.DirectionsRenderer();
+      if (!directionsRenderer) return;
 
       directionsRenderer.setMap(map);
 
@@ -218,6 +220,8 @@ export default function Index() {
   useEffect(() => {
     if (!map || !goo) return;
 
+    setDirectionsRenderer(new goo.maps.DirectionsRenderer());
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((position) => {
         const svgMarker = {
@@ -263,6 +267,7 @@ export default function Index() {
     setBuddyName('');
     setWalking(false);
     setIntervalRunning(false);
+    directionsRenderer?.setMap(null);
   };
 
   return (
