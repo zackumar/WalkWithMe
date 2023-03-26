@@ -2,8 +2,9 @@ import { Loader } from '@googlemaps/js-api-loader';
 import { Form, Link } from '@remix-run/react';
 import type { ChangeEventHandler, FormEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import {Header} from '../components/Header';
-import { addRoute } from '~/firebase';
+import { Header } from '../components/Header';
+import { addRoute, auth, isRouteStarted } from '~/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 const loader = new Loader({
   apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
@@ -74,6 +75,7 @@ export async function getRoute(
 
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
+  const [user] = useAuthState(auth);
 
   const [pickupValue, setPickupValue] = useState('');
   const [dropoffValue, setDropoffValue] = useState('');
@@ -85,6 +87,8 @@ export default function Index() {
 
   const [pickupFocused, setPickupFocused] = useState(false);
   const [dropoffFocused, setDropoffFocused] = useState(false);
+
+  const [routeId, setRouteId] = useState<string | null>(null);
 
   const onPickupUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
     if (!goo || !map) return;
@@ -106,6 +110,8 @@ export default function Index() {
 
   const [isRequestPage, setIsRequestPage] = useState(false);
   const [isRequested, setIsRequested] = useState(false);
+  const [started, setRouteStarted] = useState(false);
+  const [buddyName, setBuddyName] = useState('');
 
   const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -121,10 +127,30 @@ export default function Index() {
 
       setIsRequestPage(true);
     } else {
-      await addRoute(pickupValue, dropoffValue);
+      setRouteId(
+        (
+          await addRoute(
+            user?.uid!,
+            user?.displayName!,
+            pickupValue,
+            dropoffValue
+          )
+        ).id
+      );
       setIsRequested(true);
     }
   };
+
+  useEffect(() => {
+    if (!routeId) return;
+
+    setInterval(() => {
+      isRouteStarted(routeId).then((isStarted) => {
+        setRouteStarted(isStarted.isStarted);
+        setBuddyName(isStarted.buddyName);
+      });
+    }, 5000);
+  }, [routeId]);
 
   useEffect(() => {
     loader
@@ -186,128 +212,140 @@ export default function Index() {
           <div className="h-screen w-screen" id="map" ref={mapRef}></div>
         </div>
         <section className="absolute inset-2 top-1/2 md:top-[unset] md:left-10 md:bottom-10 md:h-3/4 md:w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
-          <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
-          <Form
-            className="space-y-2 flex flex-col justify-between h-[90%]"
-            // method="post"
-            onSubmit={onSubmit}
-          >
-            <div>
-              <input
-                className="border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
-                name="pickup"
-                type="text"
-                placeholder="Pickup"
-                required
-                value={pickupValue}
-                onChange={onPickupUpdate}
-                onFocus={() => {
-                  setPlaces([]);
-                  setPickupFocused(true);
-                }}
-              ></input>
-              <input
-                className="border border-t-0 border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
-                name="dropoff"
-                type="text"
-                placeholder="Drop off"
-                required
-                value={dropoffValue}
-                onChange={onDropoffUpdate}
-                onFocus={() => {
-                  setPlaces([]);
-                  setDropoffFocused(true);
-                }}
-              ></input>
-            </div>
-            {(dropoffFocused || pickupFocused) && places.length > 0 ? (
-              <ul className="grow overflow-y-scroll p-2">
-                {places.map((place: any) => {
-                  return (
-                    <li key={place.place_id}>
-                      <button
-                        className="hover:bg-indigo-100 rounded-sm"
-                        onClick={() => {
-                          console.log(pickupFocused, dropoffFocused);
-                          if (pickupFocused) {
-                            setPickupValue(place.formatted_address);
-                            setPickupFocused(false);
-                          }
-                          if (dropoffFocused) {
-                            setDropoffValue(place.formatted_address);
-                            setDropoffFocused(false);
-                          }
-                        }}
+          {!started ? (
+            <>
+              {' '}
+              <h1 className="font-bold text-2xl text-slate-800">
+                Howdy, Runner
+              </h1>
+              <Form
+                className="space-y-2 flex flex-col justify-between h-[90%]"
+                onSubmit={onSubmit}
+              >
+                <div>
+                  <input
+                    className="border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
+                    name="pickup"
+                    type="text"
+                    placeholder="Pickup"
+                    required
+                    value={pickupValue}
+                    onChange={onPickupUpdate}
+                    onFocus={() => {
+                      setPlaces([]);
+                      setPickupFocused(true);
+                    }}
+                  ></input>
+                  <input
+                    className="border border-t-0 border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
+                    name="dropoff"
+                    type="text"
+                    placeholder="Drop off"
+                    required
+                    value={dropoffValue}
+                    onChange={onDropoffUpdate}
+                    onFocus={() => {
+                      setPlaces([]);
+                      setDropoffFocused(true);
+                    }}
+                  ></input>
+                </div>
+                {(dropoffFocused || pickupFocused) && places.length > 0 ? (
+                  <ul className="grow overflow-y-scroll p-2">
+                    {places.map((place: any) => {
+                      return (
+                        <li key={place.place_id}>
+                          <button
+                            className="hover:bg-indigo-100 rounded-sm"
+                            onClick={() => {
+                              console.log(pickupFocused, dropoffFocused);
+                              if (pickupFocused) {
+                                setPickupValue(place.formatted_address);
+                                setPickupFocused(false);
+                              }
+                              if (dropoffFocused) {
+                                setDropoffValue(place.formatted_address);
+                                setDropoffFocused(false);
+                              }
+                            }}
+                          >
+                            {place.formatted_address}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : null}
+                {isRequestPage ? (
+                  <div className="space-y-6">
+                    <h2 className="text-xl font-semibold">Your Trip</h2>
+                    <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
+                      <svg
+                        viewBox="0 0 50 50"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
                       >
-                        {place.formatted_address}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : null}
-            {isRequestPage ? (
-              <div className="space-y-6">
-                <h2 className="text-xl font-semibold">Your Trip</h2>
-                <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
-                  <svg
-                    viewBox="0 0 50 50"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                  >
-                    <circle cx="25" cy="25" r="25" fill="#818CF8" />
-                    <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
-                  </svg>
-                  <p className="col-span-4 text-base overflow-hidden text-ellipsis whitespace-nowrap block text-start">
-                    {pickupValue}
-                  </p>
-                  <p className="col-span-1 text-xs text-right font-semibold">
-                    Pick up
-                  </p>
-                  {/* {data.route.pickup} */}
+                        <circle cx="25" cy="25" r="25" fill="#818CF8" />
+                        <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
+                      </svg>
+                      <p className="col-span-4 text-base overflow-hidden text-ellipsis whitespace-nowrap block text-start">
+                        {pickupValue}
+                      </p>
+                      <p className="col-span-1 text-xs text-right font-semibold">
+                        Pick up
+                      </p>
+                      {/* {data.route.pickup} */}
+                    </div>
+                    <div className="grid grid-cols-6 w-full">
+                      <svg
+                        viewBox="0 0 50 50"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                      >
+                        <circle cx="25" cy="25" r="25" fill="#F9B8BB" />
+                        <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
+                      </svg>
+                      <p className="col-span-4 overflow-hidden text-ellipsis whitespace-nowrap block text-start">
+                        {dropoffValue}
+                      </p>
+                      <p className="col-span-1 text-xs text-right font-semibold">
+                        Drop-off
+                      </p>
+                      {/* {data.route.destination} */}
+                    </div>
+                    {/* {data.route.pickup} to {data.route.destination} */}
+                  </div>
+                ) : null}
+                <div className="pt-4 border-t border-t-slate-300">
+                  {!isRequested ? (
+                    <button
+                      className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                      name="submit"
+                      value="details"
+                      type="submit"
+                      disabled={isRequested}
+                    >
+                      {!isRequestPage ? 'Details' : null}
+                      {isRequestPage && !isRequested ? 'Request Walk' : null}
+                    </button>
+                  ) : null}
+                  {isRequested ? (
+                    <p className="text-center">
+                      You will be notified when someone is on the way
+                    </p>
+                  ) : null}
                 </div>
-                <div className="grid grid-cols-6 w-full">
-                  <svg
-                    viewBox="0 0 50 50"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                  >
-                    <circle cx="25" cy="25" r="25" fill="#F9B8BB" />
-                    <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
-                  </svg>
-                  <p className="col-span-4 overflow-hidden text-ellipsis whitespace-nowrap block text-start">
-                    {dropoffValue}
-                  </p>
-                  <p className="col-span-1 text-xs text-right font-semibold">
-                    Drop-off
-                  </p>
-                  {/* {data.route.destination} */}
-                </div>
-                {/* {data.route.pickup} to {data.route.destination} */}
-              </div>
-            ) : null}
-            <div className="pt-4 border-t border-t-slate-300">
-              {!isRequested ? (
-                <button
-                  className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-                  name="submit"
-                  value="details"
-                  type="submit"
-                  disabled={isRequested}
-                >
-                  {!isRequestPage ? 'Details' : null}
-                  {isRequestPage && !isRequested ? 'Request Walk' : null}
-                </button>
-              ) : null}
-              {isRequested ? (
-                <p className="text-center">
-                  You will be notified when someone is on the way
-                </p>
-              ) : null}
+              </Form>{' '}
+            </>
+          ) : (
+            <div className="w-full h-full flex flex-col justify-center items-center">
+              <h1 className="text-3xl font-semibold text-center">
+                Your Buddy, {buddyName} is on their way to pick you up!
+              </h1>
             </div>
-          </Form>
+          )}
         </section>
       </main>
     </div>

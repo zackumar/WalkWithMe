@@ -18,6 +18,8 @@ import {
   doc,
   serverTimestamp,
   getDocs,
+  updateDoc,
+  getDoc,
 } from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -74,7 +76,7 @@ export async function getRoutes() {
   docs.forEach((doc: any) => {
     routes.push({ id: doc.id, ...doc.data() });
   });
-  
+
   return routes;
 }
 
@@ -83,16 +85,32 @@ export async function deleteRoute(routeId: string) {
   await deleteDoc(doc(db, 'routes', routeId));
 }
 
+export async function startRoute(routeId: string, buddyName: string) {
+  await updateDoc(doc(db, 'routes', routeId), {
+    started: true,
+    buddyName,
+  });
+}
+
+export async function isRouteStarted(routeId: string) {
+  const data = (await getDoc(doc(db, 'routes', routeId))).data();
+  return { isStarted: data?.started, buddyName: data?.buddyName };
+}
+
 //adds a route given a start point, a midway point, and a destination
 export async function addRoute(
+  userId: string,
+  displayName: string,
   start: google.maps.LatLng | string,
   destination: google.maps.LatLng | string,
   waypoints?: google.maps.LatLng | string
 ) {
-  await addDoc(
+  return await addDoc(
     collection(db, 'routes'),
     waypoints
       ? {
+          userId,
+          displayName,
           start:
             typeof start === 'string'
               ? start
@@ -108,6 +126,8 @@ export async function addRoute(
           timestamp: serverTimestamp(),
         }
       : {
+          userId,
+          displayName,
           start:
             typeof start === 'string'
               ? start
