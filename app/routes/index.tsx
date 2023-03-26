@@ -4,6 +4,8 @@ import { json } from '@remix-run/cloudflare';
 import { Form, Link, useActionData } from '@remix-run/react';
 import type { ChangeEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
+import { addRoute, deleteRoute, getRoutes } from '~/firebase';
+
 
 const loader = new Loader({
   apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
@@ -93,7 +95,7 @@ export const action = async ({ request }: ActionArgs) => {
 
 export default function Index() {
   const data = useActionData();
-  console.log(data);
+  //console.log(data);
   const mapRef = useRef<HTMLDivElement>(null);
 
   const [pickupValue, setPickupValue] = useState('');
@@ -224,7 +226,7 @@ export default function Index() {
                       <button
                         className="hover:bg-indigo-100 rounded-sm"
                         onClick={() => {
-                          console.log(pickupFocused, dropoffFocused);
+                          //console.log(pickupFocused, dropoffFocused);
                           if (pickupFocused) {
                             setPickupValue(place.formatted_address);
                             setPickupFocused(false);

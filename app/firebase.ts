@@ -1,8 +1,24 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { collection, query, orderBy, addDoc, deleteDoc, getDocs, doc, where, serverTimestamp } from "firebase/firestore";
-import { db } from "./firebase";
+import {
+  GoogleAuthProvider,
+  getAuth,
+  signInWithPopup,
+  signOut,
+} from 'firebase/auth';
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  orderBy,
+  deleteDoc,
+  query,
+  where,
+  doc,
+  serverTimestamp,
+  getDocs,
+} from 'firebase/firestore';
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -20,19 +36,48 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+export const db = getFirestore(app);
+// const analytics = getAnalytics(app);
+export const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
+export const signInWithGoogle = async () => {
+  try {
+    const res = await signInWithPopup(auth, googleProvider);
+    const user = res.user;
+    const q = query(collection(db, 'users'), where('uid', '==', user.uid));
+    // const docs = await getDocs(q);
+    // if (docs.docs.length === 0) {
+    //   await addDoc(collection(db, 'users'), {
+    //     uid: user.uid,
+    //     name: user.displayName,
+    //     authProvider: 'google',
+    //     email: user.email,
+    //   });
+    // }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+export const logout = () => {
+  signOut(auth);
+};
 
 //gets all routes
-export async function getRoutes(routeId: string){
-  const routes:any = [];
+export async function getRoutes(){
+  const routes: any = [];
   const q = query(
     collection(db, 'routes'), 
-    orderBy('timestemp', 'asc')
+    orderBy('timestamp', 'asc')
   );
   const docs = await getDocs(q);
+
   docs.forEach((doc:any) => {
     routes.push({ id: doc.id, ...doc.data() });
   });
+
+
     return routes;
 }
 
