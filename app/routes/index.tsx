@@ -8,13 +8,34 @@ const loader = new Loader({
   libraries: ['places'],
 });
 
+
+export async function getPlaces(goog: typeof google,locQuery: string, map: google.maps.Map){
+
+  return new Promise((resolve, reject) => {
+    const request = {
+      query: locQuery,
+    };
+  
+    const service = new goog.maps.places.PlacesService(map);
+
+    service.textSearch(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        resolve(results);
+      } else {
+        reject(new Error(`PlacesServiceStatus is ${status}`));
+      }
+    });
+  });
+}
+
+
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loader
       .load()
-      .then((google) => {
+      .then(async (google) => {
         if (mapRef.current) {
           const map = new google.maps.Map(mapRef.current, {
             center: { lat: 29.58343962451892, lng: -98.62006139828749 },
