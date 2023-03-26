@@ -179,10 +179,10 @@ export default function Index() {
         </Link>
       </header>
       <main className="relative bg-gray-500">
-        <div className="fixed top-0 left-0 right-0 md:relative ">
+        <div className="top-0 left-0 right-0 relative">
           <div className="h-screen w-screen" id="map" ref={mapRef}></div>
         </div>
-        <section className="absolute bottom-10 left-10 h-3/4 w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
+        <section className="absolute inset-2 top-1/2 md:top-[unset] md:left-10 md:bottom-10 md:h-3/4 md:w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
           <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
           <Form
             className="space-y-2 flex flex-col justify-between h-[90%]"
