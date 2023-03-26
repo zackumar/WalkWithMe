@@ -90,8 +90,9 @@ export default function Index() {
               ></input>
             </div>
             {data ? (
-              <div className="space-y-5">
-                <div className="flex flex-row w-full relative before:absolute before:top-0 before:h-16 before:w-1 before:left-2 before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
+              <div className="space-y-6">
+                <h2 className='text-xl font-semibold'>Your Trip</h2>
+                <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
                   <svg
                     viewBox="0 0 50 50"
                     fill="none"
@@ -101,9 +102,11 @@ export default function Index() {
                     <circle cx="25" cy="25" r="25" fill="#818CF8" />
                     <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
                   </svg>
-                  {data.route.pickup}
+                  <p className='col-span-4 text-base overflow-hidden text-ellipsis whitespace-nowrap block text-start'>123 Sesame St.</p>
+                  <p className='col-span-1 text-xs text-right font-semibold'>Pick up</p>
+                  {/* {data.route.pickup} */}
                 </div>
-                <div className="flex flex-row w-full">
+                <div className="grid grid-cols-6 w-full">
                   <svg
                     viewBox="0 0 50 50"
                     fill="none"
@@ -113,7 +116,9 @@ export default function Index() {
                     <circle cx="25" cy="25" r="25" fill="#F9B8BB" />
                     <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
                   </svg>
-                  {data.route.destination}
+                  <p className='col-span-4 overflow-hidden text-ellipsis whitespace-nowrap block text-start'>501 W Cesar E Chavez Blvd, San Antonio</p>
+                  <p className='col-span-1 text-xs text-right font-semibold'>Drop-off</p>
+                  {/* {data.route.destination} */}
                 </div>
                 {/* {data.route.pickup} to {data.route.destination} */}
               </div>
