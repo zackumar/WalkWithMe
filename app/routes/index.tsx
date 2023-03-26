@@ -1,5 +1,6 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import { Form } from '@remix-run/react';
+import { ActionArgs, json } from '@remix-run/cloudflare';
+import { Form, Link, useActionData } from '@remix-run/react';
 import { useEffect, useRef } from 'react';
 
 const loader = new Loader({
@@ -8,7 +9,28 @@ const loader = new Loader({
   libraries: ['places'],
 });
 
+export const action = async ({ request }: ActionArgs) => {
+  const formData = await request.formData();
+
+  const submitType = formData.get('submit');
+  const pickup = formData.get('pickup');
+  const destination = formData.get('destination');
+
+  if (submitType === 'details') {
+    return json({
+      route: {
+        pickup,
+        destination,
+      },
+    });
+  }
+
+  return null;
+};
+
 export default function Index() {
+  const data = useActionData();
+
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -26,64 +48,89 @@ export default function Index() {
             zoomControl: false,
             mapId: '7712e063257c268f',
           });
-
-          const svgMarker = {
-            path: 'M10.453 14.016l6.563-6.609-1.406-1.406-5.156 5.203-2.063-2.109-1.406 1.406zM12 2.016q2.906 0 4.945 2.039t2.039 4.945q0 1.453-0.727 3.328t-1.758 3.516-2.039 3.070-1.711 2.273l-0.75 0.797q-0.281-0.328-0.75-0.867t-1.688-2.156-2.133-3.141-1.664-3.445-0.75-3.375q0-2.906 2.039-4.945t4.945-2.039z',
-            fillColor: '#f7a0a4',
-            fillOpacity: 0.9,
-            strokeWeight: 0,
-            rotation: 0,
-            scale: 2,
-            anchor: new google.maps.Point(15, 30),
-          };
-
-          const marker = new google.maps.Marker({
-            position: { lat: 29.58343962451892, lng: -98.62006139828749 },
-            icon: svgMarker,
-            map: map,
-          });
         }
       })
       .catch((e) => {
         console.error(e);
       });
-  }, [mapRef, loader]);
+  }, [mapRef]);
 
   return (
-    <main className="relative min-h-screen bg-gray-500">
-      <div className="fixed top-0 left-0 right-0 md:relative">
-        <div
-          className="h-[50vh] w-screen md:h-screen"
-          id="map"
-          ref={mapRef}
-        ></div>
-      </div>
-      <section className="absolute bottom-10 left-10 h-3/4 w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
-        <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
-        <Form className="flex flex-col justify-between h-[90%]">
-          <div>
-            <input
-              className="border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
-              name="pickup"
-              type="text"
-              placeholder="Pickup"
-              required
-            ></input>
-            <input
-              className="border border-t-0 border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
-              name="destination"
-              type="text"
-              placeholder="Drop off"
-              required
-            ></input>
-          </div>
-          <div className="pt-4 border-t border-t-slate-300">
-            <button className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full">
-              Details
-            </button>
-          </div>
-        </Form>
-      </section>
-    </main>
+    <div className="min-h-screen">
+      <header className="flex flex-row justify-between p-5">
+        <Link className="flex flex-row items-center space-x-2" to="/">
+          <span
+            className="h-5 w-5 rounded-full 
+        bg-sky-400"
+          ></span>
+          <p className="text-lg font-semibold text-black">RowdyBuddy</p>
+        </Link>
+      </header>
+      <main className="relative bg-gray-500">
+        <div className="fixed top-0 left-0 right-0 md:relative">
+          <div className="h-[50vh] w-screen" id="map" ref={mapRef}></div>
+        </div>
+        <section className="absolute bottom-10 left-10 h-3/4 w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
+          <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
+          <Form className="flex flex-col justify-between h-[90%]" method="post">
+            <div>
+              <input
+                className="border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
+                name="pickup"
+                type="text"
+                placeholder="Pickup"
+                required
+              ></input>
+              <input
+                className="border border-t-0 border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
+                name="destination"
+                type="text"
+                placeholder="Drop off"
+                required
+              ></input>
+            </div>
+            {data ? (
+              <div className="space-y-5">
+                <div className="flex flex-row w-full relative before:absolute before:top-0 before:h-16 before:w-1 before:left-2 before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
+                  <svg
+                    viewBox="0 0 50 50"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                  >
+                    <circle cx="25" cy="25" r="25" fill="#818CF8" />
+                    <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
+                  </svg>
+                  {data.route.pickup}
+                </div>
+                <div className="flex flex-row w-full">
+                  <svg
+                    viewBox="0 0 50 50"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                  >
+                    <circle cx="25" cy="25" r="25" fill="#F9B8BB" />
+                    <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
+                  </svg>
+                  {data.route.destination}
+                </div>
+                {/* {data.route.pickup} to {data.route.destination} */}
+              </div>
+            ) : null}
+            <div className="pt-4 border-t border-t-slate-300">
+              <button
+                className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                name="submit"
+                value="details"
+                type="submit"
+              >
+                Details
+              </button>
+            </div>
+          </Form>
+        </section>
+      </main>
+    </div>
   );
 }
