@@ -56,8 +56,8 @@ export default function Index() {
   }, [mapRef]);
 
   return (
-    <div className="min-h-screen">
-      <header className="flex flex-row justify-between p-5">
+    <div className="min-h-screen relative ">
+      <header className="absolute inset-x-0 top-0 z-10 flex flex-row justify-between p-5 bg-white">
         <Link className="flex flex-row items-center space-x-2" to="/">
           <span
             className="h-5 w-5 rounded-full 
@@ -67,8 +67,8 @@ export default function Index() {
         </Link>
       </header>
       <main className="relative bg-gray-500">
-        <div className="fixed top-0 left-0 right-0 md:relative">
-          <div className="h-[50vh] w-screen" id="map" ref={mapRef}></div>
+        <div className="fixed top-0 left-0 right-0 md:relative ">
+          <div className="h-screen w-screen" id="map" ref={mapRef}></div>
         </div>
         <section className="absolute bottom-10 left-10 h-3/4 w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
           <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
