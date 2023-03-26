@@ -8,6 +8,26 @@ const loader = new Loader({
   libraries: ['places'],
 });
 
+export async function getPlaces(goog: typeof google,locQuery: string, map: google.maps.Map){
+
+  return new Promise((resolve, reject) => {
+    const request = {
+      query: locQuery,
+    };
+  
+    const service = new goog.maps.places.PlacesService(map);
+
+    service.textSearch(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        resolve(results);
+      } else {
+        reject(new Error(`PlacesServiceStatus is ${status}`));
+      }
+    });
+  });
+}
+
+
 export async function getRoute(
   goo: typeof google,
   origin: string | google.maps.LatLng | google.maps.Place,
