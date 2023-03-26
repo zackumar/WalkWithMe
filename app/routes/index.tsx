@@ -9,6 +9,66 @@ const loader = new Loader({
   libraries: ['places'],
 });
 
+
+export async function getPlaces(goog: typeof google,locQuery: string, map: google.maps.Map){
+
+  return new Promise((resolve, reject) => {
+    const request = {
+      query: locQuery,
+    };
+  
+    const service = new goog.maps.places.PlacesService(map);
+
+    service.textSearch(request, (results, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        resolve(results);
+      } else {
+        reject(new Error(`PlacesServiceStatus is ${status}`));
+      }
+    });
+  });
+}
+
+
+export async function getRoute(
+  goo: typeof google,
+  origin: string | google.maps.LatLng | google.maps.Place,
+  destination: string | google.maps.LatLng | google.maps.Place,
+  waypoints?: google.maps.DirectionsWaypoint[]
+) {
+  var directionsService = new goo.maps.DirectionsService();
+  if (waypoints == null) {
+    var request = {
+      origin: origin,
+      destination: destination,
+      travelMode: google.maps.TravelMode.WALKING,
+    };
+    return directionsService.route(
+      request,
+      function (result: any, status: any) {
+        if (status == google.maps.DirectionsStatus.OK) {
+          return result;
+        }
+      }
+    );
+  } else {
+    var request2 = {
+      origin: origin,
+      destination: destination,
+      travelMode: google.maps.TravelMode.WALKING,
+      waypoints: waypoints,
+    };
+    return directionsService.route(
+      request2,
+      function (result: any, status: any) {
+        if (status == google.maps.DirectionsStatus.OK) {
+          return result;
+        }
+      }
+    );
+  }
+}
+
 export const action = async ({ request }: ActionArgs) => {
   const formData = await request.formData();
 
@@ -28,6 +88,7 @@ export const action = async ({ request }: ActionArgs) => {
   return null;
 };
 
+
 export default function Index() {
   const data = useActionData();
 
@@ -36,7 +97,7 @@ export default function Index() {
   useEffect(() => {
     loader
       .load()
-      .then((google) => {
+      .then(async (google) => {
         if (mapRef.current) {
           const map = new google.maps.Map(mapRef.current, {
             center: { lat: 29.58343962451892, lng: -98.62006139828749 },
@@ -48,6 +109,34 @@ export default function Index() {
             zoomControl: false,
             mapId: '7712e063257c268f',
           });
+          
+          const svgMarker = {
+            path: 'M10.453 14.016l6.563-6.609-1.406-1.406-5.156 5.203-2.063-2.109-1.406 1.406zM12 2.016q2.906 0 4.945 2.039t2.039 4.945q0 1.453-0.727 3.328t-1.758 3.516-2.039 3.070-1.711 2.273l-0.75 0.797q-0.281-0.328-0.75-0.867t-1.688-2.156-2.133-3.141-1.664-3.445-0.75-3.375q0-2.906 2.039-4.945t4.945-2.039z',
+            fillColor: '#f7a0a4',
+            fillOpacity: 0.9,
+            strokeWeight: 0,
+            rotation: 0,
+            scale: 2,
+            anchor: new google.maps.Point(15, 30),
+          };
+
+          const marker = new google.maps.Marker({
+            position: { lat: 29.58343962451892, lng: -98.62006139828749 },
+            icon: svgMarker,
+            map: map,
+          });
+
+          const directionsRenderer = new google.maps.DirectionsRenderer();
+
+          directionsRenderer.setMap(map);
+
+          directionsRenderer.setDirections(
+            await getRoute(
+              google,
+              'UTSA',
+              '201 springtree trail, cibolo, tx 78108'
+            )
+          );
         }
       })
       .catch((e) => {
