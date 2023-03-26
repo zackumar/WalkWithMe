@@ -1,10 +1,9 @@
 import { Loader } from '@googlemaps/js-api-loader';
-import type { ActionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, Link, useActionData } from '@remix-run/react';
-import type { ChangeEventHandler } from 'react';
+import { Form, Link } from '@remix-run/react';
+import type { ChangeEventHandler, FormEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import {Header} from '../components/Header';
+import { addRoute } from '~/firebase';
 
 const loader = new Loader({
   apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
@@ -73,28 +72,7 @@ export async function getRoute(
   }
 }
 
-export const action = async ({ request }: ActionArgs) => {
-  const formData = await request.formData();
-
-  const submitType = formData.get('submit');
-  const pickup = formData.get('pickup') as string;
-  const dropoff = formData.get('dropoff') as string;
-
-  if (submitType === 'details') {
-    return json({
-      route: {
-        pickup,
-        dropoff,
-      },
-    });
-  }
-
-  return null;
-};
-
 export default function Index() {
-  const data = useActionData();
-  console.log(data);
   const mapRef = useRef<HTMLDivElement>(null);
 
   const [pickupValue, setPickupValue] = useState('');
@@ -126,6 +104,28 @@ export default function Index() {
     });
   };
 
+  const [isRequestPage, setIsRequestPage] = useState(false);
+  const [isRequested, setIsRequested] = useState(false);
+
+  const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+    if (!isRequestPage) {
+      if (!goo) return;
+      const directionsRenderer = new goo.maps.DirectionsRenderer();
+
+      directionsRenderer.setMap(map);
+
+      directionsRenderer.setDirections(
+        await getRoute(google, pickupValue, dropoffValue)
+      );
+
+      setIsRequestPage(true);
+    } else {
+      await addRoute(pickupValue, dropoffValue);
+      setIsRequested(true);
+    }
+  };
+
   useEffect(() => {
     loader
       .load()
@@ -151,23 +151,6 @@ export default function Index() {
       });
   }, [mapRef]);
 
-  useEffect(() => {
-    if (!data) return;
-
-    const effect = async () => {
-      if (!goo) return;
-      const directionsRenderer = new goo.maps.DirectionsRenderer();
-
-      directionsRenderer.setMap(map);
-
-      directionsRenderer.setDirections(
-        await getRoute(google, data.route.pickup, data.route.dropoff)
-      );
-    };
-
-    effect();
-  }, [goo, map, data]);
-
   return (
     <div className="min-h-screen relative ">
       <Header />
@@ -179,7 +162,8 @@ export default function Index() {
           <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
           <Form
             className="space-y-2 flex flex-col justify-between h-[90%]"
-            method="post"
+            // method="post"
+            onSubmit={onSubmit}
           >
             <div>
               <input
@@ -235,7 +219,7 @@ export default function Index() {
                 })}
               </ul>
             ) : null}
-            {data ? (
+            {isRequestPage ? (
               <div className="space-y-6">
                 <h2 className="text-xl font-semibold">Your Trip</h2>
                 <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
@@ -278,14 +262,23 @@ export default function Index() {
               </div>
             ) : null}
             <div className="pt-4 border-t border-t-slate-300">
-              <button
-                className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-                name="submit"
-                value="details"
-                type="submit"
-              >
-                Details
-              </button>
+              {!isRequested ? (
+                <button
+                  className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                  name="submit"
+                  value="details"
+                  type="submit"
+                  disabled={isRequested}
+                >
+                  {!isRequestPage ? 'Details' : null}
+                  {isRequestPage && !isRequested ? 'Request Walk' : null}
+                </button>
+              ) : null}
+              {isRequested ? (
+                <p className="text-center">
+                  You will be notified when someone is on the way
+                </p>
+              ) : null}
             </div>
           </Form>
         </section>
