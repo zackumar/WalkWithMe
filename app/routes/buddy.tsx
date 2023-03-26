@@ -180,13 +180,13 @@ export default function BuddySystem() {
       </header>
       <main className="relative bg-gray-500 grid grid-cols-2">
         <section className="pt-24 h-full w-full bg-white p-5 shadow-lg space-y-5">
-          <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
+          <h1 className="font-bold text-2xl text-slate-800">Howdy, Buddy</h1>
           <Form
             className="space-y-2 flex flex-col justify-between h-[90%]"
             method="post"
           >
             <div>
-              <input
+              {/* <input
                 className="border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
                 name="pickup"
                 type="text"
@@ -211,8 +211,33 @@ export default function BuddySystem() {
                   setPlaces([]);
                   setDropoffFocused(true);
                 }}
-              ></input>
+              ></input> */}
             </div>
+            <div className="h-full">
+              <div className="grid grid-cols-4 gap-1 p-[2px]">
+                <p className="border border-slate-200 bg-slate-100 rounded-lg p-5  w-full col-span-2">
+                  John Smith
+                </p>
+                <button className="border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center">
+                  View Route
+                </button>
+                <button className="border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center">
+                  Select Route
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-1 p-[2px]">
+                <p className="border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-2">
+                  John Smith
+                </p>
+                <button className="border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center">
+                  View Route
+                </button>
+                <button className="border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center">
+                  Select Route
+                </button>
+              </div>
+            </div>
+
             {(dropoffFocused || pickupFocused) && places.length > 0 ? (
               <ul className="grow overflow-y-scroll p-2">
                 {places.map((place: any) => {
