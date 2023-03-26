@@ -130,6 +130,13 @@ export default function Index() {
       const directionsRenderer = new goo.maps.DirectionsRenderer();
 
       directionsRenderer.setMap(map);
+
+      directionsRenderer.setOptions({
+        polylineOptions: {
+          strokeColor: '#818CF8',
+        },
+      });
+      
       directionsRenderer.setDirections(
         await getRoute(google, pickupValue, dropoffValue)
       );
@@ -401,7 +408,7 @@ export default function Index() {
                   ) : null}
                   {isRequested ? (
                     <p className="text-center">
-                      You will be notified when someone is on the way
+                      You will be notified when someone is on the way.
                     </p>
                   ) : null}
                 </div>
