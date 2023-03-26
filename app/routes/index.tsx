@@ -9,6 +9,7 @@ import {
   endRoute,
   isRouteFinished,
   isRouteStarted,
+  sendAlert,
   signInWithGoogle,
   startWalking,
 } from '~/firebase';
@@ -125,6 +126,11 @@ export default function Index() {
   const [intervalRunning, setIntervalRunning] = useState(false);
   const [directionsRenderer, setDirectionsRenderer] =
     useState<google.maps.DirectionsRenderer | null>(null);
+  const [alertMode, setAlertMode] = useState(false);
+  const [alertCountdown, setAlertCountdown] = useState(6);
+  const [authPlaces, setAuthPlaces] = useState<any>([]);
+
+
 
   const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -164,6 +170,10 @@ export default function Index() {
     }
   };
 
+  // useEffect(() => {
+  //   setAlertCountdown(5);
+  // }, []);
+
   useEffect(() => {
     if (!routeId) return;
 
@@ -181,6 +191,32 @@ export default function Index() {
 
     return () => clearInterval(interval);
   }, [routeId, intervalRunning]);
+
+  useEffect(() => {
+    if(alertCountdown < 6) {
+      setAlertMode(true);
+      console.log(alertCountdown)
+    var intervalId = setInterval(() => {
+      setAlertCountdown(alertCountdown - 1);
+    }, 1000);
+
+    if (alertCountdown === 0) {
+      setAlertMode(false);
+      setWalking(false);
+      setRouteStarted(true);
+      clearInterval(intervalId);
+      getCurrentLocationForAuthorities();
+    }
+  }
+
+    return () => clearInterval(intervalId);
+  }, [alertCountdown]);
+
+  useEffect(() => {
+    if(alertCountdown === 0 && authPlaces.length > 0) {
+      sendAlert(routeId!, authPlaces[0].formatted_address)
+    }
+  }, [authPlaces, alertCountdown])
 
   useEffect(() => {
     loader
@@ -216,6 +252,19 @@ export default function Index() {
       });
     }
   };
+
+  const getCurrentLocationForAuthorities = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+    if (!goo || !map) return;
+
+    getPlaces(goo, `${position.coords.latitude}, ${position.coords.longitude}`, map).then((places) => {
+      setAuthPlaces(places as []);
+    });
+      });
+    }
+  };
+
 
   useEffect(() => {
     if (!map || !goo) return;
@@ -267,6 +316,16 @@ export default function Index() {
     setBuddyName('');
     setWalking(false);
     setIntervalRunning(false);
+    setAlertMode(false);
+    setAuthPlaces([]);
+    setAlertCountdown(6);
+    directionsRenderer?.setMap(null);
+  };
+
+  const cancelCountdown = () => {
+    setAlertMode(false);
+    setAuthPlaces([]);
+    setAlertCountdown(6);
     directionsRenderer?.setMap(null);
   };
 
@@ -293,7 +352,7 @@ export default function Index() {
               </button>
             </div>
           ) : null}
-          {!started && user ? (
+          {!started && user && alertCountdown !== 0 ? (
             <>
               {' '}
               <h1 className="font-bold text-2xl text-slate-800">
@@ -439,7 +498,7 @@ export default function Index() {
             </>
           ) : null}
           {/* {started && !walking  */}
-          {started && !walking ? (
+          {started && !walking && alertCountdown !== 0 ? (
             <div className="w-full h-full flex flex-col items-center">
               <div className="grow flex flex-col items-center justify-center">
                 <h1 className="text-3xl font-medium text-center">
@@ -459,7 +518,7 @@ export default function Index() {
           ) : null}
 
           {/* {walking  */}
-          {walking ? (
+          {walking && !alertMode ? (
             <div className="w-full h-full flex flex-col items-center">
               <div className="grow flex flex-col items-center space-y-4">
                 <h1 className="text-3xl font-medium text-center">
@@ -469,7 +528,8 @@ export default function Index() {
                   If you ever feel like you are in danger, alert the police
                   here.
                 </h2>
-                <button className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full">
+                <button className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
+                        onClick={() => {setAlertCountdown(5)}}>
                   Alert
                 </button>
               </div>
@@ -520,6 +580,57 @@ export default function Index() {
                 >
                   Arrived to Destination
                 </button>
+              </div>
+            </div>
+          ) : null}
+          {alertMode ? (
+            <div className="w-full h-full flex flex-col items-center">
+              <div className="grow flex flex-col items-center space-y-4">
+                <h1 className="text-4xl font-medium text-center">
+                  You are in Alert Mode
+                </h1>
+                <h1 className="text-3xl font-medium text-center">
+                  The authorities will be contacted in
+                </h1>
+                <h1 className="text-8xl font-medium text-center">
+                  {alertCountdown}
+                </h1>
+                
+              </div>
+              <button className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
+              onClick={cancelCountdown}>
+                  Cancel
+                </button>
+              <div className="space-y-8">
+                <div className="space-y-6">
+                  {/* {data.route.pickup} to {data.route.destination} */}
+                </div>
+                
+              </div>
+            </div>
+          ) : null}
+          {alertCountdown === 0 ? (
+            <div className="w-full h-full flex flex-col items-center">
+              <div className="grow flex flex-col items-center space-y-4">
+                <h1 className="text-4xl font-medium text-center">
+                  The authorities have been contacted
+                </h1>
+                <h2 className="text-3xl font-medium text-center">
+                  Location sent:
+                </h2>
+                <h2 className="text-3xl font-medium text-center">
+                  {authPlaces.length > 0 ? authPlaces[0].formatted_address : "Loading..."}
+                </h2>
+              </div>
+              <button className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
+                      onClick={onArrive}>
+                  Done
+                </button>
+              <div className="space-y-8">
+                <div className="space-y-6">
+                  {/* {data.route.pickup} to {data.route.destination} */}
+                </div>
+                
               </div>
             </div>
           ) : null}
