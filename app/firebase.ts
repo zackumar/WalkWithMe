@@ -114,6 +114,13 @@ export async function isRouteFinished(routeId: string) {
   return !!data?.finished;
 }
 
+export async function sendAlert(routeId: string, currentLoc: string) {
+  await updateDoc(doc(db, 'routes', routeId), {
+    alert: true,
+    currentLoc,
+  });
+}
+
 //adds a route given a start point, a midway point, and a destination
 export async function addRoute(
   userId: string,

@@ -151,7 +151,7 @@ export default function BuddySystem() {
   return (
     <div className="min-h-screen relative ">
       <Header />
-      <main className="relative bg-gray-500 lg:grid lg:grid-cols-3 flex flex-col h-screen w-screen">
+      <main className="relative  lg:grid lg:grid-cols-3 flex flex-col h-screen w-screen">
         <section className="pt-24 h-[50vh] lg:h-full lg:w-full bg-white p-5 shadow-lg space-y-5 col-span-1">
           {!routeId ? (
             <>
@@ -165,35 +165,63 @@ export default function BuddySystem() {
                       {routes.map((route: any) => {
                         return (
                           <div
-                            className="border border-slate-200 bg-slate-100 rounded-lg p-5 mb-5"
+                            className="border border-slate-200 bg-slate-100 rounded-lg p-2 mb-5"
                             key={route.id}
                           >
                             <div className="grid grid-cols-4 gap-1 p-[2px]">
-                              <div className="border border-slate-200 bg-slate-100 rounded-lg p-5  w-full col-span-2">
+                              {route.alert ? (
+                                <div
+                                  className={`border border-slate-200 rounded-lg p-5  w-full bg-red-500 text-white col-span-1`}
+                                >
+                                  <h1 className="text-xl font-bold">ALERT</h1>
+                                </div>
+                              ) : null}
+                              <div
+                                className={`border border-slate-200 rounded-lg p-5  w-full  ${
+                                  route.alert
+                                    ? 'bg-red-500 text-white col-span-2'
+                                    : 'bg-slate-100 col-span-2'
+                                }`}
+                              >
                                 <h1 className="text-lg font-medium">
                                   {route.displayName}
                                 </h1>
-                                <p className="text-sm">{route.start}</p>
+                                <p className="text-sm">
+                                  {route.alert
+                                    ? `CURR LOC: ${route.currentLoc}`
+                                    : route.start}
+                                </p>
                               </div>
 
                               <button
-                                className="border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center"
+                                className={`border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center ${
+                                  route.alert
+                                    ? 'bg-red-500 text-white'
+                                    : 'bg-slate-100'
+                                }
+                                `}
                                 onClick={(e) => {
                                   viewRoute(route.start, route.destination);
                                 }}
                               >
                                 View Route
                               </button>
-                              <button
-                                className="border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center"
-                                onClick={() => {
-                                  viewRoute(route.start, route.destination);
-                                  startRoute(route.id, user?.displayName!);
-                                  setRouteId(route.id);
-                                }}
-                              >
-                                Start Route
-                              </button>
+                              {!route.alert ? (
+                                <button
+                                  className={`border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center ${
+                                    route.alert
+                                      ? 'bg-red-500 text-white'
+                                      : 'bg-slate-100'
+                                  }`}
+                                  onClick={() => {
+                                    viewRoute(route.start, route.destination);
+                                    startRoute(route.id, user?.displayName!);
+                                    setRouteId(route.id);
+                                  }}
+                                >
+                                  Start Route
+                                </button>
+                              ) : null}
                             </div>
                           </div>
                         );
