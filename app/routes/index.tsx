@@ -150,6 +150,33 @@ export default function Index() {
       });
   }, [mapRef]);
 
+  useEffect(() => {
+    if (!map) return;
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((position) => {
+        const svgMarker = {
+          path: 'M25 50C38.8071 50 50 38.8071 50 25C50 11.1929 38.8071 0 25 0C11.1929 0 0 11.1929 0 25C0 38.8071 11.1929 50 25 50ZM25.5 37C32.4036 37 38 31.4036 38 24.5C38 17.5964 32.4036 12 25.5 12C18.5964 12 13 17.5964 13 24.5C13 31.4036 18.5964 37 25.5 37Z',
+          fillColor: '#ff0000',
+          fillOpacity: 0.9,
+          strokeWeight: 0,
+          rotation: 0,
+          scale: 0.5,
+          anchor: new google.maps.Point(15, 30),
+        };
+
+        const marker = new google.maps.Marker({
+          position: {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          },
+          icon: svgMarker,
+          map: map,
+        });
+      });
+    }
+  }, [map]);
+
   return (
     <div className="min-h-screen relative ">
       <header className="absolute inset-x-0 top-0 z-10 flex flex-row justify-between p-5 bg-white">
