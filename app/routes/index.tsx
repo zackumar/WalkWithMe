@@ -9,14 +9,12 @@ const loader = new Loader({
 });
 
 export async function getRoute(
-  google: any,
+  goo: typeof google,
   origin: string | google.maps.LatLng | google.maps.Place,
   destination: string | google.maps.LatLng | google.maps.Place,
   waypoints?: google.maps.DirectionsWaypoint[]
 ) {
-  console.log('in');
-
-  var directionsService = new google.maps.DirectionsService();
+  var directionsService = new goo.maps.DirectionsService();
   if (waypoints == null) {
     var request = {
       origin: origin,
