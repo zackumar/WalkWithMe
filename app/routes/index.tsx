@@ -141,17 +141,17 @@ export default function Index() {
           setGoogle(google);
           setMap(map);
 
-          const directionsRenderer = new google.maps.DirectionsRenderer();
+          // const directionsRenderer = new google.maps.DirectionsRenderer();
 
-          directionsRenderer.setMap(map);
+          // directionsRenderer.setMap(map);
 
-          directionsRenderer.setDirections(
-            await getRoute(
-              google,
-              'UTSA',
-              '201 springtree trail, cibolo, tx 78108'
-            )
-          );
+          // directionsRenderer.setDirections(
+          //   await getRoute(
+          //     google,
+          //     'UTSA',
+          //     '201 springtree trail, cibolo, tx 78108'
+          //   )
+          // );
         }
       })
       .catch((e) => {
@@ -165,7 +165,7 @@ export default function Index() {
         <Link className="flex flex-row items-center space-x-2" to="/">
           <span
             className="h-5 w-5 rounded-full 
-        bg-sky-400"
+        bg-[#818CF8]"
           ></span>
           <p className="text-lg font-semibold text-black">RowdyBuddy</p>
         </Link>
@@ -176,7 +176,7 @@ export default function Index() {
         </div>
         <section className="absolute bottom-10 left-10 h-3/4 w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
           <h1 className="font-bold text-2xl text-slate-800">Howdy, Runner</h1>
-          <Form className="flex flex-col justify-between h-[90%]" method="post">
+          <Form className="space-y-2 flex flex-col justify-between h-[90%]" method="post">
             <div>
               <input
                 className="border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
@@ -206,11 +206,11 @@ export default function Index() {
               ></input>
             </div>
             {(dropoffFocused || pickupFocused) && places.length > 0 ? (
-              <ul className="grow overflow-y-scroll">
+              <ul className="grow overflow-y-scroll p-2">
                 {places.map((place: any) => {
                   return (
                     <li key={place.place_id}>
-                      <button
+                      <button className='hover:bg-indigo-100 rounded-sm'
                         onClick={() => {
                           console.log(pickupFocused, dropoffFocused);
                           if (pickupFocused) {
@@ -244,7 +244,7 @@ export default function Index() {
                     <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
                   </svg>
                   <p className="col-span-4 text-base overflow-hidden text-ellipsis whitespace-nowrap block text-start">
-                    123 Sesame St.
+                    {pickupValue}
                   </p>
                   <p className="col-span-1 text-xs text-right font-semibold">
                     Pick up
@@ -262,7 +262,7 @@ export default function Index() {
                     <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
                   </svg>
                   <p className="col-span-4 overflow-hidden text-ellipsis whitespace-nowrap block text-start">
-                    501 W Cesar E Chavez Blvd, San Antonio
+                    {dropoffValue}
                   </p>
                   <p className="col-span-1 text-xs text-right font-semibold">
                     Drop-off
