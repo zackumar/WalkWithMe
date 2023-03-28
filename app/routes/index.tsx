@@ -38,6 +38,7 @@ export default function Index() {
   const [isRequested, setIsRequested] = useState(false);
   const [started, setRouteStarted] = useState(false);
   const [buddyName, setBuddyName] = useState('');
+  const [duration, setDuration] = useState('');
 
   const [walking, setWalking] = useState(false);
   const [intervalRunning, setIntervalRunning] = useState(false);
@@ -153,8 +154,14 @@ export default function Index() {
         },
       });
 
+      const route = await getRoute(goo, pickupValue, dropoffValue);
+
+      setDuration(
+        route.routes[0].legs[0].duration?.text ?? 'No time estimate available'
+      );
+
       directionsRenderer.setDirections(
-        await getRoute(google, pickupValue, dropoffValue)
+        await getRoute(goo, pickupValue, dropoffValue)
       );
 
       setIsRequestPage(true);
@@ -351,7 +358,7 @@ export default function Index() {
                   </ul>
                 ) : null}
                 {isRequestPage ? (
-                  <div className="space-y-6">
+                  <div className="space-y-6 grow">
                     <h2 className="text-xl font-semibold">Your Trip</h2>
                     <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
                       <svg
@@ -387,6 +394,10 @@ export default function Index() {
                         Drop-off
                       </p>
                     </div>
+                    <p>
+                      <span className="text-lg font-medium">ETA:</span>{' '}
+                      {duration}
+                    </p>
                   </div>
                 ) : null}
                 <div className="pt-4 border-t border-t-slate-300">
