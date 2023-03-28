@@ -18,6 +18,7 @@ import {
   getPlaces,
   getLocation,
   useGoogleMap,
+  secondsToEta,
 } from '~/utils/mapUtils';
 
 import { Header } from '../components/Header';
@@ -38,7 +39,7 @@ export default function Index() {
   const [isRequested, setIsRequested] = useState(false);
   const [started, setRouteStarted] = useState(false);
   const [buddyName, setBuddyName] = useState('');
-  const [duration, setDuration] = useState('');
+  const [eta, setEta] = useState('');
 
   const [walking, setWalking] = useState(false);
   const [intervalRunning, setIntervalRunning] = useState(false);
@@ -156,9 +157,7 @@ export default function Index() {
 
       const route = await getRoute(goo, pickupValue, dropoffValue);
 
-      setDuration(
-        route.routes[0].legs[0].duration?.text ?? 'No time estimate available'
-      );
+      setEta(secondsToEta(route.routes[0].legs[0].duration?.value ?? 0));
 
       directionsRenderer.setDirections(
         await getRoute(goo, pickupValue, dropoffValue)
@@ -396,7 +395,7 @@ export default function Index() {
                     </div>
                     <p>
                       <span className="text-lg font-medium">ETA:</span>{' '}
-                      {duration}
+                      {eta ? eta : 'Calculating...'}
                     </p>
                   </div>
                 ) : null}
