@@ -56,7 +56,6 @@ export const signInWithGoogle = async () => {
         email: user.email,
       });
     }
-    console.log(user);
   } catch (err) {
     console.error(err);
   }
@@ -79,7 +78,6 @@ export async function getRoutes() {
   return routes;
 }
 
-//deletes route that's ID is passed in
 export async function deleteRoute(routeId: string) {
   await deleteDoc(doc(db, 'routes', routeId));
 }
@@ -120,7 +118,6 @@ export async function sendAlert(routeId: string, currentLoc: string) {
   });
 }
 
-//adds a route given a start point, a midway point, and a destination
 export async function addRoute(
   userId: string,
   displayName: string,
