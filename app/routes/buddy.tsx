@@ -1,6 +1,5 @@
-import { Loader } from '@googlemaps/js-api-loader';
-
 import { useEffect, useRef, useState } from 'react';
+import { DIRECTION_OPTIONS, getRoute, useGoogleMap } from '~/utils/mapUtils';
 
 import {
   auth,
@@ -12,90 +11,18 @@ import {
 
 import { Header } from '../components/Header';
 import { useAuthState } from 'react-firebase-hooks/auth';
-
-const loader = new Loader({
-  apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
-  version: 'weekly',
-  libraries: ['places'],
-});
-
-export async function getRoute(
-  goo: typeof google,
-  origin: string | google.maps.LatLng | google.maps.Place,
-  destination: string | google.maps.LatLng | google.maps.Place,
-  waypoints?: google.maps.DirectionsWaypoint[]
-) {
-  var directionsService = new goo.maps.DirectionsService();
-  if (waypoints == null) {
-    var request = {
-      origin: origin,
-      destination: destination,
-      travelMode: google.maps.TravelMode.WALKING,
-    };
-    return directionsService.route(
-      request,
-      function (result: any, status: any) {
-        if (status == google.maps.DirectionsStatus.OK) {
-          return result;
-        }
-      }
-    );
-  } else {
-    var request2 = {
-      origin: origin,
-      destination: destination,
-      travelMode: google.maps.TravelMode.WALKING,
-      waypoints: waypoints,
-    };
-    return directionsService.route(
-      request2,
-      function (result: any, status: any) {
-        if (status == google.maps.DirectionsStatus.OK) {
-          return result;
-        }
-      }
-    );
-  }
-}
+import { RouteCard } from '~/components/Route';
 
 export default function BuddySystem() {
   const [user] = useAuthState(auth);
-  const mapRef = useRef<HTMLDivElement>(null);
 
-  const [goo, setGoogle] = useState<typeof google | null>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+  const [goo, map] = useGoogleMap(mapRef);
 
   const [routes, setRoutes] = useState<any>([]);
-
-  useEffect(() => {
-    loader
-      .load()
-      .then(async (google) => {
-        if (mapRef.current) {
-          const map = new google.maps.Map(mapRef.current, {
-            center: { lat: 29.58343962451892, lng: -98.62006139828749 },
-            zoom: 14,
-            mapTypeControl: false,
-            fullscreenControl: false,
-            streetViewControl: false,
-            keyboardShortcuts: false,
-            zoomControl: false,
-            mapId: '7712e063257c268f',
-          });
-
-          setGoogle(google);
-          setMap(map);
-        }
-      })
-      .catch((e) => {
-        console.error(e);
-      });
-  }, [mapRef]);
-
   const [routeId, setRouteId] = useState('');
-
   const [directionsRenderer, setDirectionsRenderer] =
-    useState<google.maps.DirectionsRenderer | null>(null);
+    useState<google.maps.DirectionsRenderer>();
 
   useEffect(() => {
     setInterval(() => {
@@ -124,17 +51,10 @@ export default function BuddySystem() {
     pickup: string | google.maps.LatLng,
     dropoff: string | google.maps.LatLng
   ) => {
-    if (!goo) return;
-    if (!directionsRenderer) return;
+    if (!goo || !map || !directionsRenderer) return;
 
     directionsRenderer.setMap(map);
-
-    directionsRenderer.setOptions({
-      polylineOptions: {
-        strokeColor: '#818CF8',
-      },
-    });
-
+    directionsRenderer.setOptions(DIRECTION_OPTIONS);
     directionsRenderer.setDirections(
       await getRoute(
         google,
@@ -160,79 +80,19 @@ export default function BuddySystem() {
                   {routes && routes.length > 0 ? (
                     <ul>
                       {routes.map((route: any) => {
-                        console.log(route.started);
-
                         return (
-                          <div
-                            className={` rounded-lg p-2 mb-5 ${
-                              route.alert
-                                ? 'bg-red-500 text-white'
-                                : 'bg-slate-100'
-                            }`}
+                          <RouteCard
                             key={route.id}
-                          >
-                            <h2 className="font-semibold">
-                              {route.alert ? 'ALERT' : null}
-                              {route.started && !route.walking && !route.alert
-                                ? 'Waiting for Buddy'
-                                : null}
-                              {route.walking && !route.alert
-                                ? 'En Route'
-                                : null}
-                              {!route.started && !route.alert && !route.walking
-                                ? 'New Route'
-                                : null}
-                            </h2>
-                            <div className="grid grid-cols-4 gap-1 p-[2px]">
-                              {/* <div
-                                className={`border border-slate-200 rounded-lg p-5  w-full  ${
-                                  route.alert
-                                    ? 'bg-red-500 text-white col-span-2'
-                                    : 'bg-slate-100 col-span-2'
-                                }`}
-                              > */}
-                              <div
-                                className={
-                                  route.alert ? 'col-span-3' : 'col-span-2'
-                                }
-                              >
-                                <h1 className="text-lg font-medium">
-                                  {route.displayName}
-                                </h1>
-                                <p className="text-sm">
-                                  {route.alert
-                                    ? `CURR LOC: ${route.currentLoc}`
-                                    : route.start}
-                                </p>
-                              </div>
-                              {/* </div> */}
-
-                              <button
-                                className="border border-slate-200 rounded-lg p-2 w-full col-span-1 text-center"
-                                onClick={(e) => {
-                                  viewRoute(route.start, route.destination);
-                                }}
-                              >
-                                View Route
-                              </button>
-                              {!route.alert ? (
-                                <button
-                                  className={`border border-slate-200 bg-slate-100 rounded-lg p-2 h-full w-full col-span-1 text-center ${
-                                    route.alert
-                                      ? 'bg-red-500 text-white'
-                                      : 'bg-slate-100'
-                                  }`}
-                                  onClick={() => {
-                                    viewRoute(route.start, route.destination);
-                                    startRoute(route.id, user?.displayName!);
-                                    setRouteId(route.id);
-                                  }}
-                                >
-                                  Start Route
-                                </button>
-                              ) : null}
-                            </div>
-                          </div>
+                            route={route}
+                            onViewRoute={() => {
+                              viewRoute(route.start, route.end);
+                            }}
+                            onStartRoute={() => {
+                              viewRoute(route.start, route.destination);
+                              startRoute(route.id, user?.displayName!);
+                              setRouteId(route.id);
+                            }}
+                          />
                         );
                       })}
                     </ul>

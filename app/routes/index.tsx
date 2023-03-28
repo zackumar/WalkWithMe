@@ -1,8 +1,8 @@
-import { Loader } from '@googlemaps/js-api-loader';
 import { Form } from '@remix-run/react';
 import type { ChangeEventHandler, FormEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import { Header } from '../components/Header';
+import { useAuthState } from 'react-firebase-hooks/auth';
+
 import {
   addRoute,
   auth,
@@ -13,109 +13,26 @@ import {
   signInWithGoogle,
   startWalking,
 } from '~/firebase';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import {
+  getRoute,
+  getPlaces,
+  getLocation,
+  useGoogleMap,
+} from '~/utils/mapUtils';
 
-const loader = new Loader({
-  apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
-  version: 'weekly',
-  libraries: ['places'],
-});
-
-export async function getPlaces(
-  goog: typeof google,
-  locQuery: string,
-  map: google.maps.Map
-) {
-  return new Promise((resolve, reject) => {
-    const request = {
-      query: locQuery,
-    };
-
-    const service = new goog.maps.places.PlacesService(map);
-
-    service.textSearch(request, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK) {
-        resolve(results);
-      } else {
-        reject(new Error(`PlacesServiceStatus is ${status}`));
-      }
-    });
-  });
-}
-
-export async function getRoute(
-  goo: typeof google,
-  origin: string | google.maps.LatLng | google.maps.Place,
-  destination: string | google.maps.LatLng | google.maps.Place,
-  waypoints?: google.maps.DirectionsWaypoint[]
-) {
-  var directionsService = new goo.maps.DirectionsService();
-  if (waypoints == null) {
-    var request = {
-      origin: origin,
-      destination: destination,
-      travelMode: google.maps.TravelMode.WALKING,
-    };
-    return directionsService.route(
-      request,
-      function (result: any, status: any) {
-        if (status == google.maps.DirectionsStatus.OK) {
-          return result;
-        }
-      }
-    );
-  } else {
-    var request2 = {
-      origin: origin,
-      destination: destination,
-      travelMode: google.maps.TravelMode.WALKING,
-      waypoints: waypoints,
-    };
-    return directionsService.route(
-      request2,
-      function (result: any, status: any) {
-        if (status == google.maps.DirectionsStatus.OK) {
-          return result;
-        }
-      }
-    );
-  }
-}
+import { Header } from '../components/Header';
 
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [user] = useAuthState(auth);
+  const [goo, map] = useGoogleMap(mapRef);
 
+  const [user] = useAuthState(auth);
   const [pickupValue, setPickupValue] = useState('');
   const [dropoffValue, setDropoffValue] = useState('');
-
-  const [goo, setGoogle] = useState<typeof google | null>(null);
-
-  const [places, setPlaces] = useState([]);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-
+  const [places, setPlaces] = useState<google.maps.places.PlaceResult[]>([]);
   const [pickupFocused, setPickupFocused] = useState(false);
   const [dropoffFocused, setDropoffFocused] = useState(false);
-
   const [routeId, setRouteId] = useState<string | null>(null);
-
-  const onPickupUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!goo || !map) return;
-    setPickupValue(e.target.value);
-
-    getPlaces(goo, e.target.value, map).then((places) => {
-      setPlaces(places as []);
-    });
-  };
-
-  const onDropoffUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!goo || !map) return;
-    setDropoffValue(e.target.value);
-
-    getPlaces(goo, e.target.value, map).then((places) => {
-      setPlaces(places as []);
-    });
-  };
 
   const [isRequestPage, setIsRequestPage] = useState(false);
   const [isRequested, setIsRequested] = useState(false);
@@ -125,54 +42,12 @@ export default function Index() {
   const [walking, setWalking] = useState(false);
   const [intervalRunning, setIntervalRunning] = useState(false);
   const [directionsRenderer, setDirectionsRenderer] =
-    useState<google.maps.DirectionsRenderer | null>(null);
+    useState<google.maps.DirectionsRenderer>();
+
   const [alertMode, setAlertMode] = useState(false);
-  const [alertCountdown, setAlertCountdown] = useState(6);
-  const [authPlaces, setAuthPlaces] = useState<any>([]);
-
-
-
-  const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
-    if (!isRequestPage) {
-      if (!goo) return;
-      if (!directionsRenderer) return;
-
-      directionsRenderer.setMap(map);
-
-      directionsRenderer.setOptions({
-        polylineOptions: {
-          strokeColor: '#818CF8',
-        },
-      });
-
-      directionsRenderer.setDirections(
-        await getRoute(google, pickupValue, dropoffValue)
-      );
-
-      setIsRequestPage(true);
-      setPlaces([]);
-      setDropoffFocused(false);
-      setPickupFocused(false);
-    } else {
-      setRouteId(
-        (
-          await addRoute(
-            user?.uid!,
-            user?.displayName!,
-            pickupValue,
-            dropoffValue
-          )
-        ).id
-      );
-      setIsRequested(true);
-      setIntervalRunning(true);
-    }
-  };
-
-  // useEffect(() => {
-  //   setAlertCountdown(5);
-  // }, []);
+  const [alertCountdown, setAlertCountdown] = useState(-1);
+  const [alertPlace, setAlertPlace] =
+    useState<google.maps.places.PlaceResult>();
 
   useEffect(() => {
     if (!routeId) return;
@@ -193,78 +68,40 @@ export default function Index() {
   }, [routeId, intervalRunning]);
 
   useEffect(() => {
-    if(alertCountdown < 6) {
-      setAlertMode(true);
-      console.log(alertCountdown)
-    var intervalId = setInterval(() => {
-      setAlertCountdown(alertCountdown - 1);
-    }, 1000);
-
-    if (alertCountdown === 0) {
-      setAlertMode(false);
-      setWalking(false);
-      setRouteStarted(true);
-      clearInterval(intervalId);
-      getCurrentLocationForAuthorities();
-    }
-  }
-
-    return () => clearInterval(intervalId);
-  }, [alertCountdown]);
-
-  useEffect(() => {
-    if(alertCountdown === 0 && authPlaces.length > 0) {
-      sendAlert(routeId!, authPlaces[0].formatted_address)
-    }
-  }, [authPlaces, alertCountdown])
-
-  useEffect(() => {
-    loader
-      .load()
-      .then(async (google) => {
-        if (mapRef.current) {
-          const map = new google.maps.Map(mapRef.current, {
-            center: { lat: 29.58343962451892, lng: -98.62006139828749 },
-            zoom: 14,
-            mapTypeControl: false,
-            fullscreenControl: false,
-            streetViewControl: false,
-            keyboardShortcuts: false,
-            zoomControl: false,
-            mapId: '7712e063257c268f',
-          });
-
-          setGoogle(google);
-          setMap(map);
-        }
-      })
-      .catch((e) => {
-        console.error(e);
-      });
-  }, [mapRef]);
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setPickupValue(
-          `${position.coords.latitude}, ${position.coords.longitude}`
-        );
-      });
-    }
-  };
-
-  const getCurrentLocationForAuthorities = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
     if (!goo || !map) return;
 
-    getPlaces(goo, `${position.coords.latitude}, ${position.coords.longitude}`, map).then((places) => {
-      setAuthPlaces(places as []);
-    });
-      });
-    }
-  };
+    if (alertCountdown != -1) {
+      setAlertMode(true);
+      var intervalId = setInterval(() => {
+        setAlertCountdown(alertCountdown - 1);
+      }, 1000);
 
+      if (alertCountdown === 0) {
+        setAlertMode(false);
+        setWalking(false);
+        setRouteStarted(true);
+        clearInterval(intervalId);
+
+        getLocation().then((loc) => {
+          getPlaces(
+            goo,
+            `${loc?.coords.latitude}, ${loc?.coords.longitude}`,
+            map
+          ).then((places) => {
+            setAlertPlace(places[0]);
+          });
+        });
+      }
+    }
+
+    return () => clearInterval(intervalId);
+  }, [alertCountdown, goo, map]);
+
+  useEffect(() => {
+    if (alertCountdown === 0 && alertPlace && routeId) {
+      sendAlert(routeId, alertPlace.formatted_address!);
+    }
+  }, [alertPlace, alertCountdown, routeId]);
 
   useEffect(() => {
     if (!map || !goo) return;
@@ -302,6 +139,78 @@ export default function Index() {
     }
   }, [map, goo]);
 
+  const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
+    e.preventDefault();
+    if (!isRequestPage) {
+      if (!goo || !map) return;
+      if (!directionsRenderer) return;
+
+      directionsRenderer.setMap(map);
+
+      directionsRenderer.setOptions({
+        polylineOptions: {
+          strokeColor: '#818CF8',
+        },
+      });
+
+      directionsRenderer.setDirections(
+        await getRoute(google, pickupValue, dropoffValue)
+      );
+
+      setIsRequestPage(true);
+      setPlaces([]);
+      setDropoffFocused(false);
+      setPickupFocused(false);
+    } else {
+      setRouteId(
+        (
+          await addRoute(
+            user?.uid!,
+            user?.displayName!,
+            pickupValue,
+            dropoffValue
+          )
+        ).id
+      );
+      setIsRequested(true);
+      setIntervalRunning(true);
+    }
+  };
+
+  const onPickupUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    if (!goo || !map) return;
+    setPickupValue(e.target.value);
+
+    const loc = await getLocation();
+    setPlaces(
+      await getPlaces(
+        goo,
+        e.target.value,
+        map,
+        loc
+          ? new google.maps.LatLng(loc.coords.latitude, loc.coords.longitude)
+          : undefined
+      )
+    );
+  };
+
+  const onDropoffUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
+    if (!goo || !map) return;
+    setDropoffValue(e.target.value);
+
+    const loc = await getLocation();
+    setPlaces(
+      await getPlaces(
+        goo,
+        e.target.value,
+        map,
+        loc
+          ? new google.maps.LatLng(loc.coords.latitude, loc.coords.longitude)
+          : undefined
+      )
+    );
+  };
+
   const onArrive = () => {
     endRoute(routeId!);
     setRouteId('');
@@ -317,16 +226,15 @@ export default function Index() {
     setWalking(false);
     setIntervalRunning(false);
     setAlertMode(false);
-    setAuthPlaces([]);
-    setAlertCountdown(6);
+    setAlertPlace(undefined);
+    setAlertCountdown(-1);
     directionsRenderer?.setMap(null);
   };
 
   const cancelCountdown = () => {
     setAlertMode(false);
-    setAuthPlaces([]);
-    setAlertCountdown(6);
-    directionsRenderer?.setMap(null);
+    setAlertPlace(undefined);
+    setAlertCountdown(-1);
   };
 
   return (
@@ -354,7 +262,6 @@ export default function Index() {
           ) : null}
           {!started && user && alertCountdown !== 0 ? (
             <>
-              {' '}
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Runner
               </h1>
@@ -381,7 +288,13 @@ export default function Index() {
                     {!isRequestPage ? (
                       <button
                         className="fill-indigo-400 absolute right-4 top-4 w-8 h-8"
-                        onClick={getCurrentLocation}
+                        onClick={async () => {
+                          const loc = await getLocation();
+                          if (!loc) return;
+                          setPickupValue(
+                            `${loc.coords.latitude}, ${loc.coords.longitude}`
+                          );
+                        }}
                       >
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -408,14 +321,13 @@ export default function Index() {
                   ></input>
                 </div>
                 {(dropoffFocused || pickupFocused) && places.length > 0 ? (
-                  <ul className="grow overflow-y-scroll p-2">
+                  <ul className="grow overflow-y-scroll mt-2 space-y-2">
                     {places.map((place: any) => {
                       return (
                         <li key={place.place_id}>
                           <button
-                            className="hover:bg-indigo-100 rounded-sm"
+                            className="hover:bg-indigo-100 rounded-s flex flex-col justify-start w-full p-2"
                             onClick={() => {
-                              console.log(pickupFocused, dropoffFocused);
                               if (pickupFocused) {
                                 setPickupValue(place.formatted_address);
                                 setPickupFocused(false);
@@ -426,7 +338,12 @@ export default function Index() {
                               }
                             }}
                           >
-                            {place.formatted_address}
+                            <h1 className="font-medium text-left">
+                              {place.name}
+                            </h1>
+                            <p className="text-left text-slate-600">
+                              {place.formatted_address}
+                            </p>
                           </button>
                         </li>
                       );
@@ -452,7 +369,6 @@ export default function Index() {
                       <p className="col-span-1 text-xs text-right font-semibold">
                         Pick up
                       </p>
-                      {/* {data.route.pickup} */}
                     </div>
                     <div className="grid grid-cols-6 w-full">
                       <svg
@@ -470,9 +386,7 @@ export default function Index() {
                       <p className="col-span-1 text-xs text-right font-semibold">
                         Drop-off
                       </p>
-                      {/* {data.route.destination} */}
                     </div>
-                    {/* {data.route.pickup} to {data.route.destination} */}
                   </div>
                 ) : null}
                 <div className="pt-4 border-t border-t-slate-300">
@@ -494,10 +408,9 @@ export default function Index() {
                     </p>
                   ) : null}
                 </div>
-              </Form>{' '}
+              </Form>
             </>
           ) : null}
-          {/* {started && !walking  */}
           {started && !walking && alertCountdown !== 0 ? (
             <div className="w-full h-full flex flex-col items-center">
               <div className="grow flex flex-col items-center justify-center">
@@ -516,8 +429,6 @@ export default function Index() {
               </button>
             </div>
           ) : null}
-
-          {/* {walking  */}
           {walking && !alertMode ? (
             <div className="w-full h-full flex flex-col items-center">
               <div className="grow flex flex-col items-center space-y-4">
@@ -528,8 +439,12 @@ export default function Index() {
                   If you ever feel like you are in danger, alert the police
                   here.
                 </h2>
-                <button className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
-                        onClick={() => {setAlertCountdown(5)}}>
+                <button
+                  className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
+                  onClick={() => {
+                    setAlertCountdown(5);
+                  }}
+                >
                   Alert
                 </button>
               </div>
@@ -552,7 +467,6 @@ export default function Index() {
                     <p className="col-span-1 text-xs text-right font-semibold">
                       Pick up
                     </p>
-                    {/* {data.route.pickup} */}
                   </div>
                   <div className="grid grid-cols-6 w-full">
                     <svg
@@ -570,9 +484,7 @@ export default function Index() {
                     <p className="col-span-1 text-xs text-right font-semibold">
                       Drop-off
                     </p>
-                    {/* {data.route.destination} */}
                   </div>
-                  {/* {data.route.pickup} to {data.route.destination} */}
                 </div>
                 <button
                   className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
@@ -595,17 +507,15 @@ export default function Index() {
                 <h1 className="text-8xl font-medium text-center">
                   {alertCountdown}
                 </h1>
-                
               </div>
-              <button className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
-              onClick={cancelCountdown}>
-                  Cancel
-                </button>
+              <button
+                className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
+                onClick={cancelCountdown}
+              >
+                Cancel
+              </button>
               <div className="space-y-8">
-                <div className="space-y-6">
-                  {/* {data.route.pickup} to {data.route.destination} */}
-                </div>
-                
+                <div className="space-y-6"></div>
               </div>
             </div>
           ) : null}
@@ -619,18 +529,17 @@ export default function Index() {
                   Location sent:
                 </h2>
                 <h2 className="text-3xl font-medium text-center">
-                  {authPlaces.length > 0 ? authPlaces[0].formatted_address : "Loading..."}
+                  {alertPlace ? alertPlace.formatted_address : 'Loading...'}
                 </h2>
               </div>
-              <button className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
-                      onClick={onArrive}>
-                  Done
-                </button>
+              <button
+                className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
+                onClick={onArrive}
+              >
+                Done
+              </button>
               <div className="space-y-8">
-                <div className="space-y-6">
-                  {/* {data.route.pickup} to {data.route.destination} */}
-                </div>
-                
+                <div className="space-y-6"></div>
               </div>
             </div>
           ) : null}
