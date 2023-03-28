@@ -68,9 +68,6 @@ export default function BuddySystem() {
   const [routes, setRoutes] = useState<any>([]);
 
   useEffect(() => {
-    getRoutes().then((routes) => {
-      setRoutes(routes);
-    });
     loader
       .load()
       .then(async (google) => {
@@ -163,25 +160,41 @@ export default function BuddySystem() {
                   {routes && routes.length > 0 ? (
                     <ul>
                       {routes.map((route: any) => {
+                        console.log(route.started);
+
                         return (
                           <div
-                            className="border border-slate-200 bg-slate-100 rounded-lg p-2 mb-5"
+                            className={` rounded-lg p-2 mb-5 ${
+                              route.alert
+                                ? 'bg-red-500 text-white'
+                                : 'bg-slate-100'
+                            }`}
                             key={route.id}
                           >
+                            <h2 className="font-semibold">
+                              {route.alert ? 'ALERT' : null}
+                              {route.started && !route.walking && !route.alert
+                                ? 'Waiting for Buddy'
+                                : null}
+                              {route.walking && !route.alert
+                                ? 'En Route'
+                                : null}
+                              {!route.started && !route.alert && !route.walking
+                                ? 'New Route'
+                                : null}
+                            </h2>
                             <div className="grid grid-cols-4 gap-1 p-[2px]">
-                              {route.alert ? (
-                                <div
-                                  className={`border border-slate-200 rounded-lg p-5  w-full bg-red-500 text-white col-span-1`}
-                                >
-                                  <h1 className="text-xl font-bold">ALERT</h1>
-                                </div>
-                              ) : null}
-                              <div
+                              {/* <div
                                 className={`border border-slate-200 rounded-lg p-5  w-full  ${
                                   route.alert
                                     ? 'bg-red-500 text-white col-span-2'
                                     : 'bg-slate-100 col-span-2'
                                 }`}
+                              > */}
+                              <div
+                                className={
+                                  route.alert ? 'col-span-3' : 'col-span-2'
+                                }
                               >
                                 <h1 className="text-lg font-medium">
                                   {route.displayName}
@@ -192,14 +205,10 @@ export default function BuddySystem() {
                                     : route.start}
                                 </p>
                               </div>
+                              {/* </div> */}
 
                               <button
-                                className={`border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center ${
-                                  route.alert
-                                    ? 'bg-red-500 text-white'
-                                    : 'bg-slate-100'
-                                }
-                                `}
+                                className="border border-slate-200 rounded-lg p-2 w-full col-span-1 text-center"
                                 onClick={(e) => {
                                   viewRoute(route.start, route.destination);
                                 }}
@@ -208,7 +217,7 @@ export default function BuddySystem() {
                               </button>
                               {!route.alert ? (
                                 <button
-                                  className={`border border-slate-200 bg-slate-100 rounded-lg p-5 w-full col-span-1 text-center ${
+                                  className={`border border-slate-200 bg-slate-100 rounded-lg p-2 h-full w-full col-span-1 text-center ${
                                     route.alert
                                       ? 'bg-red-500 text-white'
                                       : 'bg-slate-100'
@@ -285,7 +294,6 @@ export default function BuddySystem() {
                       <p className="col-span-1 text-xs text-right font-semibold">
                         Pick up
                       </p>
-                      {/* {data.route.pickup} */}
                     </div>
                     <div className="grid grid-cols-6 w-full">
                       <svg
@@ -307,9 +315,7 @@ export default function BuddySystem() {
                       <p className="col-span-1 text-xs text-right font-semibold">
                         Drop-off
                       </p>
-                      {/* {data.route.destination} */}
                     </div>
-                    {/* {data.route.pickup} to {data.route.destination} */}
                   </div>
                 </div>
               </div>
