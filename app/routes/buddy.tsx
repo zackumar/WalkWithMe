@@ -85,7 +85,7 @@ export default function BuddySystem() {
                             key={route.id}
                             route={route}
                             onViewRoute={() => {
-                              viewRoute(route.start, route.end);
+                              viewRoute(route.start, route.destination);
                             }}
                             onStartRoute={() => {
                               viewRoute(route.start, route.destination);

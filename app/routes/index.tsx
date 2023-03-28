@@ -260,7 +260,7 @@ export default function Index() {
               </button>
             </div>
           ) : null}
-          {!started && user && alertCountdown !== 0 ? (
+          {!started && !walking && user && alertCountdown !== 0 ? (
             <>
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Runner
