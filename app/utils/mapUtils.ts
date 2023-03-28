@@ -37,6 +37,7 @@ export async function getRoute(
 
   return directionsService.route(request, (result, status) => {
     if (status == google.maps.DirectionsStatus.OK) {
+      console.log(result);
       return result;
     }
   });
@@ -110,4 +111,14 @@ export function useGoogleMap(mapRef: RefObject<HTMLDivElement>) {
   }, [mapRef]);
 
   return [goo, map, loaded] as const;
+}
+
+export function secondsToEta(seconds: number) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+
+  const hours = h > 0 ? h + (h == 1 ? ' hour, ' : ' hours, ') : '';
+  const mins = m > 0 ? m + (m == 1 ? ' minute, ' : ' minutes, ') : '';
+
+  return hours + mins;
 }

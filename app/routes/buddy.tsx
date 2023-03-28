@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { DIRECTION_OPTIONS, getRoute, useGoogleMap } from '~/utils/mapUtils';
+import {
+  DIRECTION_OPTIONS,
+  getRoute,
+  secondsToEta,
+  useGoogleMap,
+} from '~/utils/mapUtils';
 
 import {
   auth,
@@ -23,6 +28,8 @@ export default function BuddySystem() {
   const [routeId, setRouteId] = useState('');
   const [directionsRenderer, setDirectionsRenderer] =
     useState<google.maps.DirectionsRenderer>();
+
+  const [eta, setEta] = useState('');
 
   useEffect(() => {
     setInterval(() => {
@@ -55,14 +62,23 @@ export default function BuddySystem() {
 
     directionsRenderer.setMap(map);
     directionsRenderer.setOptions(DIRECTION_OPTIONS);
-    directionsRenderer.setDirections(
-      await getRoute(
-        google,
-        new goo.maps.LatLng(29.42315, -98.49879),
-        dropoff,
-        [{ location: pickup }]
+
+    const route = await getRoute(
+      goo,
+      new goo.maps.LatLng(29.42315, -98.49879),
+      dropoff,
+      [{ location: pickup }]
+    );
+
+    setEta(
+      secondsToEta(
+        route.routes[0].legs.reduce((acc, leg) => {
+          return acc + (leg.distance?.value ?? 0);
+        }, 0)
       )
     );
+
+    directionsRenderer.setDirections(route);
   };
 
   return (
@@ -176,6 +192,10 @@ export default function BuddySystem() {
                         Drop-off
                       </p>
                     </div>
+                    <p>
+                      <span className="text-lg font-medium">ETA:</span>{' '}
+                      {eta ? eta : 'Calculating...'}
+                    </p>
                   </div>
                 </div>
               </div>
