@@ -268,7 +268,7 @@ export default function Index() {
           <div className="h-screen w-screen" id="map" ref={mapRef}></div>
         </div>
         <section className="absolute inset-2 top-1/2 md:top-[unset] md:left-10 md:bottom-10 md:h-3/4 md:w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
-          {!granted ? (
+          {(!granted || location) ? (
             <div className="flex flex-col h-full">
               <div className="grow flex flex-col justify-center items-center">
                 <h1 className="font-bold text-2xl text-slate-800 text-center">
@@ -278,7 +278,7 @@ export default function Index() {
               </div>
             </div>
           ) : null}
-          {!user && granted ? (
+          {!user && (granted || location)? (
             <div className="flex flex-col h-full">
               <div className="grow flex flex-col justify-center items-center">
                 <h1 className="font-bold text-2xl text-slate-800 text-center">
@@ -294,7 +294,7 @@ export default function Index() {
             </div>
           ) : null}
 
-          {!started && !walking && user && granted && alertCountdown !== 0 ? (
+          {!started && !walking && user && (granted || location) && alertCountdown !== 0 ? (
             <>
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Runner
