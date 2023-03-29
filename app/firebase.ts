@@ -52,8 +52,8 @@ export const signInWithGoogle = async () => {
       await addDoc(collection(db, 'users'), {
         uid: user.uid,
         name: user.displayName,
-        authProvider: 'google',
         email: user.email,
+        photoURL: user.photoURL,
       });
     }
   } catch (err) {
@@ -82,10 +82,19 @@ export async function deleteRoute(routeId: string) {
   await deleteDoc(doc(db, 'routes', routeId));
 }
 
-export async function startRoute(routeId: string, buddyName: string) {
+export async function getUser(uid: string) {
+  const q = query(collection(db, 'users'), where('uid', '==', uid));
+  const docs = await getDocs(q);
+  return docs.docs[0].data();
+}
+
+export async function startRoute(routeId: string, uid: string) {
+  const user = await getUser(uid);
+
   await updateDoc(doc(db, 'routes', routeId), {
     started: true,
-    buddyName,
+    buddyName: user?.name,
+    buddyPhoto: user?.photoURL,
   });
 }
 
@@ -103,7 +112,12 @@ export async function endRoute(routeId: string) {
 
 export async function isRouteStarted(routeId: string) {
   const data = (await getDoc(doc(db, 'routes', routeId))).data();
-  return { isStarted: data?.started, buddyName: data?.buddyName };
+
+  return {
+    isStarted: data?.started,
+    buddyName: data?.buddyName,
+    buddyPhoto: data?.buddyPhoto,
+  };
 }
 
 export async function isRouteFinished(routeId: string) {
@@ -144,6 +158,7 @@ export async function addRoute(
               ? destination
               : { lat: destination.lat(), lng: destination.lng() },
           timestamp: serverTimestamp(),
+          userPhoto: (await getUser(userId)).photoURL,
         }
       : {
           userId,
@@ -158,6 +173,7 @@ export async function addRoute(
               ? destination
               : { lat: destination.lat(), lng: destination.lng() },
           timestamp: serverTimestamp(),
+          userPhoto: (await getUser(userId)).photoURL,
         }
   );
 }

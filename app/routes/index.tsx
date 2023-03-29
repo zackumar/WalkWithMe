@@ -41,6 +41,8 @@ export default function Index() {
   const [isRequested, setIsRequested] = useState(false);
   const [started, setRouteStarted] = useState(false);
   const [buddyName, setBuddyName] = useState('');
+  const [photoUrl, setPhotoUrl] = useState('');
+
   const [eta, setEta] = useState('');
 
   const [walking, setWalking] = useState(false);
@@ -61,6 +63,7 @@ export default function Index() {
         isRouteStarted(routeId).then((isStarted) => {
           setRouteStarted(isStarted.isStarted);
           setBuddyName(isStarted.buddyName);
+          setPhotoUrl(isStarted.buddyPhoto);
         });
         isRouteFinished(routeId).then((finished) => {
           if (finished) clearInterval(interval);
@@ -189,14 +192,16 @@ export default function Index() {
     if (!goo || !map) return;
     setPickupValue(e.target.value);
 
-    const loc = await getLocation();
     setPlaces(
       await getPlaces(
         goo,
         e.target.value,
         map,
-        loc
-          ? new google.maps.LatLng(loc.coords.latitude, loc.coords.longitude)
+        location
+          ? new google.maps.LatLng(
+              location.coords.latitude,
+              location.coords.longitude
+            )
           : undefined
       )
     );
@@ -206,14 +211,16 @@ export default function Index() {
     if (!goo || !map) return;
     setDropoffValue(e.target.value);
 
-    const loc = await getLocation();
     setPlaces(
       await getPlaces(
         goo,
         e.target.value,
         map,
-        loc
-          ? new google.maps.LatLng(loc.coords.latitude, loc.coords.longitude)
+        location
+          ? new google.maps.LatLng(
+              location.coords.latitude,
+              location.coords.longitude
+            )
           : undefined
       )
     );
@@ -231,6 +238,7 @@ export default function Index() {
     setIsRequested(false);
     setRouteStarted(false);
     setBuddyName('');
+    setPhotoUrl('');
     setWalking(false);
     setIntervalRunning(false);
     setAlertMode(false);
@@ -249,7 +257,7 @@ export default function Index() {
     <div className="min-h-screen relative ">
       <Header />
       <main className="relative bg-gray-500">
-        <div className="top-0 left-0 right-0 relative">
+        <div className="top-0 left-0 right-0 relative ">
           <div className="h-screen w-screen" id="map" ref={mapRef}></div>
         </div>
         <section className="absolute inset-2 top-1/2 md:top-[unset] md:left-10 md:bottom-10 md:h-3/4 md:w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
@@ -304,10 +312,11 @@ export default function Index() {
                         setDropoffFocused(false);
                       }}
                     ></input>
-                    {!isRequestPage ? (
+                    {!isRequestPage && pickupValue === '' ? (
                       <button
                         className="fill-indigo-400 absolute right-4 top-4 w-8 h-8"
-                        onClick={async () => {
+                        onClick={async (e) => {
+                          e.preventDefault();
                           const loc = await getLocation();
                           if (!loc) return;
                           setPickupValue(
@@ -436,7 +445,14 @@ export default function Index() {
           ) : null}
           {started && !walking && alertCountdown !== 0 ? (
             <div className="w-full h-full flex flex-col items-center">
-              <div className="grow flex flex-col items-center justify-center">
+              <div className="grow flex flex-col items-center justify-center space-y-4">
+                <img
+                  className="rounded-full"
+                  src={photoUrl}
+                  alt={buddyName}
+                  width="150"
+                  height="150"
+                />
                 <h1 className="text-3xl font-medium text-center">
                   Your Buddy, {buddyName}, is on their way to pick you up!
                 </h1>
