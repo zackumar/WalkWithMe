@@ -19,6 +19,7 @@ import {
   getLocation,
   useGoogleMap,
   secondsToEta,
+  useWatchLocation,
 } from '~/utils/mapUtils';
 
 import { Header } from '../components/Header';
@@ -26,6 +27,7 @@ import { Header } from '../components/Header';
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
   const [goo, map] = useGoogleMap(mapRef);
+  const [location, available, granted] = useWatchLocation();
 
   const [user] = useAuthState(auth);
   const [pickupValue, setPickupValue] = useState('');
@@ -251,7 +253,17 @@ export default function Index() {
           <div className="h-screen w-screen" id="map" ref={mapRef}></div>
         </div>
         <section className="absolute inset-2 top-1/2 md:top-[unset] md:left-10 md:bottom-10 md:h-3/4 md:w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
-          {!user ? (
+          {!granted ? (
+            <div className="flex flex-col h-full">
+              <div className="grow flex flex-col justify-center items-center">
+                <h1 className="font-bold text-2xl text-slate-800 text-center">
+                  Location services are disabled. Please enable them to get
+                  started!
+                </h1>
+              </div>
+            </div>
+          ) : null}
+          {!user && granted ? (
             <div className="flex flex-col h-full">
               <div className="grow flex flex-col justify-center items-center">
                 <h1 className="font-bold text-2xl text-slate-800 text-center">
@@ -266,7 +278,8 @@ export default function Index() {
               </button>
             </div>
           ) : null}
-          {!started && !walking && user && alertCountdown !== 0 ? (
+
+          {!started && !walking && user && granted && alertCountdown !== 0 ? (
             <>
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Runner

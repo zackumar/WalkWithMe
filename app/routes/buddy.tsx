@@ -4,6 +4,7 @@ import {
   getRoute,
   secondsToEta,
   useGoogleMap,
+  useWatchLocation,
 } from '~/utils/mapUtils';
 
 import {
@@ -23,6 +24,8 @@ export default function BuddySystem() {
 
   const mapRef = useRef<HTMLDivElement>(null);
   const [goo, map] = useGoogleMap(mapRef);
+
+  const [location, available, granted] = useWatchLocation();
 
   const [routes, setRoutes] = useState<any>([]);
   const [routeId, setRouteId] = useState('');
@@ -86,7 +89,17 @@ export default function BuddySystem() {
       <Header />
       <main className="relative  lg:grid lg:grid-cols-3 flex flex-col h-screen w-screen">
         <section className="pt-24 h-[50vh] lg:h-full lg:w-full bg-white p-5 shadow-lg space-y-5 col-span-1">
-          {!routeId ? (
+          {!granted ? (
+            <h1 className="font-bold text-2xl text-slate-800">
+              Please enable location services to continue
+            </h1>
+          ) : null}
+          {!user && granted ? (
+            <h1 className="font-bold text-2xl text-slate-800">
+              Please login to continue
+            </h1>
+          ) : null}
+          {!routeId && granted && user ? (
             <>
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Buddy
