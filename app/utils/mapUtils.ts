@@ -122,3 +122,35 @@ export function secondsToEta(seconds: number) {
 
   return hours + mins;
 }
+
+export function useWatchLocation() {
+  const [location, setLocation] = useState<GeolocationPosition>();
+  const [available, setAvailable] = useState(false);
+  const [granted, setGranted] = useState(false);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    setAvailable(true);
+    navigator.permissions
+      .query({ name: 'geolocation' })
+      .then(function (result) {
+        if (result.state == 'granted') {
+          setGranted(true);
+        } else if (result.state == 'denied') {
+          setGranted(false);
+        }
+        result.onchange = function () {
+          if (result.state == 'granted') {
+            setGranted(true);
+          } else if (result.state == 'denied') {
+            setGranted(false);
+          }
+        };
+      });
+    const watchId = navigator.geolocation.watchPosition(setLocation);
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  return [location, available, granted] as const;
+}
