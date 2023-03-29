@@ -118,7 +118,7 @@ export default function BuddySystem() {
                             }}
                             onStartRoute={() => {
                               viewRoute(route.start, route.destination);
-                              startRoute(route.id, user?.displayName!);
+                              startRoute(route.id, user?.uid!);
                               setRouteId(route.id);
                             }}
                           />
@@ -142,6 +142,21 @@ export default function BuddySystem() {
                   })[0].displayName
                 }
               </h1>
+              <img
+                className="rounded-full"
+                src={
+                  routes.filter((route: any) => {
+                    return route.id === routeId;
+                  })[0].userPhoto
+                }
+                alt={
+                  routes.filter((route: any) => {
+                    return route.id === routeId;
+                  })[0].displayName
+                }
+                width="150"
+                height="150"
+              />
               <div className="space-y-2 flex flex-col justify-between h-[90%]">
                 <div className="h-full">
                   <div className="space-y-6">
