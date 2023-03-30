@@ -306,7 +306,7 @@ export default function Index() {
             <div className="flex flex-col h-full p-5">
               <div className="grow flex flex-col justify-center items-center">
                 <h1 className="font-bold text-2xl text-slate-800 text-center">
-                  Howdy Runner! Please log in to get started!
+                  Howdy! Please log in to get started.
                 </h1>
               </div>
               <button
@@ -324,17 +324,17 @@ export default function Index() {
           (granted || location) &&
           alertCountdown !== 0 ? (
             <Form
-              className="flex flex-col h-full overflow-y-scroll"
+              className="flex flex-col h-full overflow-y-auto"
               onSubmit={onSubmit}
             >
               <div className="space-y-5 pb-5">
                 <h1 className="font-bold text-2xl text-slate-800">
-                  Howdy, Runner
+                  Howdy, {user.displayName}
                 </h1>
                 <div>
                   <div className="relative">
                     <input
-                      className="border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
+                      className="outline-[#f7a0a4] border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
                       name="pickup"
                       type="text"
                       placeholder="Pickup"
@@ -370,7 +370,7 @@ export default function Index() {
                     ) : null}
                   </div>
                   <input
-                    className="border border-t-0 border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
+                    className="outline-[#f7a0a4] focus:border-t border-b border-l border-r border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
                     name="dropoff"
                     type="text"
                     placeholder="Drop off"
@@ -501,7 +501,7 @@ export default function Index() {
             </Form>
           ) : null}
           {started && !walking && alertCountdown !== 0 ? (
-            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-scroll space-y-4">
+            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-auto space-y-4">
               <div className="grow flex flex-col items-center justify-center space-y-4">
                 <img
                   className="rounded-full"
@@ -526,7 +526,7 @@ export default function Index() {
             </div>
           ) : null}
           {walking && !alertMode ? (
-            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-scroll space-y-4">
+            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-auto space-y-4">
               <div className="grow flex flex-col items-center space-y-4">
                 <h1 className="text-3xl font-medium text-center">
                   Your safety is our highest priority.
@@ -592,7 +592,7 @@ export default function Index() {
             </div>
           ) : null}
           {alertMode ? (
-            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-scroll space-y-4">
+            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-auto space-y-4">
               <div className="grow flex flex-col items-center space-y-4">
                 <h1 className="text-4xl font-medium text-center">
                   You are in Alert Mode
@@ -616,7 +616,7 @@ export default function Index() {
             </div>
           ) : null}
           {alertCountdown === 0 ? (
-            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-scroll space-y-4">
+            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-auto space-y-4">
               <div className="grow flex flex-col items-center space-y-4">
                 <h1 className="text-4xl font-medium text-center">
                   The authorities have been contacted

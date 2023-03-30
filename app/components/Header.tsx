@@ -759,7 +759,7 @@ export function Header() {
               />
             </g>
           </svg>
-          <p className="text-lg font-semibold text-black">RowdyBuddy</p>
+          <p className="text-lg font-semibold text-black">WalkWithMe</p>
         </Link>
 
         <nav className="hidden md:flex">
