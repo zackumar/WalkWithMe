@@ -87,8 +87,11 @@ export default function BuddySystem() {
   return (
     <div className="min-h-screen relative ">
       <Header />
-      <main className="relative  lg:grid lg:grid-cols-3 flex flex-col h-screen w-screen">
-        <section className="pt-24 h-[50vh] lg:h-full lg:w-full bg-white p-5 shadow-lg space-y-5 col-span-1">
+      <main className="relative md:grid md:grid-cols-2 lg:grid-cols-3 flex flex-col h-screen w-screen">
+        <section className="relative md:pt-24 md:w-full md:h-full h-[50vh] bg-white p-5 shadow-lg space-y-5 col-span-1 overflow-y-scroll">
+          <div className="md:hidden w-full flex flex-row justify-center">
+            <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
+          </div>
           {!granted ? (
             <h1 className="font-bold text-2xl text-slate-800">
               Please enable location services to continue
@@ -104,31 +107,29 @@ export default function BuddySystem() {
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Buddy
               </h1>
-              <div className="space-y-2 flex flex-col justify-between h-[90%]">
-                <div className="h-full overflow-y-scroll">
-                  {routes && routes.length > 0 ? (
-                    <ul>
-                      {routes.map((route: any) => {
-                        return (
-                          <RouteCard
-                            key={route.id}
-                            route={route}
-                            onViewRoute={() => {
-                              viewRoute(route.start, route.destination);
-                            }}
-                            onStartRoute={() => {
-                              viewRoute(route.start, route.destination);
-                              startRoute(route.id, user?.uid!);
-                              setRouteId(route.id);
-                            }}
-                          />
-                        );
-                      })}
-                    </ul>
-                  ) : (
-                    <p>No routes</p>
-                  )}
-                </div>
+              <div className="space-y-2 flex flex-col justify-between">
+                {routes && routes.length > 0 ? (
+                  <ul>
+                    {routes.map((route: any) => {
+                      return (
+                        <RouteCard
+                          key={route.id}
+                          route={route}
+                          onViewRoute={() => {
+                            viewRoute(route.start, route.destination);
+                          }}
+                          onStartRoute={() => {
+                            viewRoute(route.start, route.destination);
+                            startRoute(route.id, user?.uid!);
+                            setRouteId(route.id);
+                          }}
+                        />
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <p>No routes</p>
+                )}
               </div>
             </>
           ) : null}
@@ -230,13 +231,11 @@ export default function BuddySystem() {
             </>
           ) : null}
         </section>
-        <div className="lg:h-full w-full h-1/2">
-          <div
-            className="lg:h-screen h-[50vh] w-screen col-span-2"
-            id="map"
-            ref={mapRef}
-          ></div>
-        </div>
+        <div
+          className="-order-1 md:order-1 md:h-full h-[50vh] md:w-full md:col-span:1 lg:col-span-2"
+          id="map"
+          ref={mapRef}
+        ></div>
       </main>
     </div>
   );
