@@ -432,7 +432,9 @@ export default function Index() {
                         <li key={place.place_id}>
                           <button
                             className="hover:bg-indigo-100 rounded-s flex flex-col justify-start w-full p-2"
-                            onClick={async () => {
+                            onClick={async (e) => {
+                              e.preventDefault();
+
                               if (pickupFocused) {
                                 setPickupValue(
                                   (
