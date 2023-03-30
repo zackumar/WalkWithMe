@@ -256,9 +256,10 @@ export default function Index() {
   };
 
   const onPickupUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!goo || !map || !autocompleteService || !sessionToken || !location)
-      return;
+    if (!goo || !map) return;
     setPickupValue(e.target.value);
+
+    if (!autocompleteService || !sessionToken || !location) return;
 
     setPlaces(
       await getPredictions(
@@ -273,9 +274,10 @@ export default function Index() {
   };
 
   const onDropoffUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!goo || !map || !location || !autocompleteService || !sessionToken)
-      return;
+    if (!goo || !map) return;
     setDropoffValue(e.target.value);
+
+    if (!autocompleteService || !sessionToken || !location) return;
 
     setPlaces(
       await getPredictions(
@@ -430,7 +432,9 @@ export default function Index() {
                         <li key={place.place_id}>
                           <button
                             className="hover:bg-indigo-100 rounded-s flex flex-col justify-start w-full p-2"
-                            onClick={async () => {
+                            onClick={async (e) => {
+                              e.preventDefault();
+
                               if (pickupFocused) {
                                 setPickupValue(
                                   (
