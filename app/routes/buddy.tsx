@@ -125,7 +125,7 @@ export default function BuddySystem() {
     <div className="min-h-screen relative ">
       <Header />
       <main className="relative md:grid md:grid-cols-2 lg:grid-cols-3 flex flex-col h-screen w-screen">
-        <section className="relative md:pt-24 md:w-full md:h-full h-[50vh] bg-white p-5 shadow-lg space-y-5 col-span-1 overflow-y-scroll">
+        <section className="relative md:pt-24 md:w-full md:h-full h-[50vh] bg-white p-5 shadow-lg space-y-5 col-span-1 overflow-y-auto">
           <div className="md:hidden w-full flex flex-row justify-center">
             <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
           </div>
