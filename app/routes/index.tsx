@@ -15,10 +15,12 @@ import {
 } from '~/firebase';
 import {
   getRoute,
-  getPlaces,
   useGoogleMap,
   secondsToEta,
   useWatchLocation,
+  getPredictions,
+  getPlaceDetails,
+  getAddressFromLatLon,
 } from '~/utils/mapUtils';
 
 import { Header } from '../components/Header';
@@ -31,7 +33,9 @@ export default function Index() {
   const [user] = useAuthState(auth);
   const [pickupValue, setPickupValue] = useState('');
   const [dropoffValue, setDropoffValue] = useState('');
-  const [places, setPlaces] = useState<google.maps.places.PlaceResult[]>([]);
+  const [places, setPlaces] = useState<
+    google.maps.places.AutocompletePrediction[]
+  >([]);
   const [pickupFocused, setPickupFocused] = useState(false);
   const [dropoffFocused, setDropoffFocused] = useState(false);
   const [routeId, setRouteId] = useState<string | null>(null);
@@ -51,8 +55,12 @@ export default function Index() {
 
   const [alertMode, setAlertMode] = useState(false);
   const [alertCountdown, setAlertCountdown] = useState(-1);
-  const [alertPlace, setAlertPlace] =
-    useState<google.maps.places.PlaceResult>();
+  const [alertPlace, setAlertPlace] = useState<google.maps.GeocoderResult>();
+
+  const [autocompleteService, setAutocompleteService] =
+    useState<google.maps.places.AutocompleteService>();
+  const [sessionToken, setSessionToken] =
+    useState<google.maps.places.AutocompleteSessionToken>();
 
   const [marker, setMarker] = useState<google.maps.Marker>();
 
@@ -128,12 +136,16 @@ export default function Index() {
         setRouteStarted(true);
         clearInterval(intervalId);
 
-        getPlaces(
+        if (!location?.coords.latitude || !location?.coords.longitude) return;
+        getAddressFromLatLon(
           goo,
-          `${location?.coords.latitude}, ${location?.coords.longitude}`,
+          new google.maps.LatLng(
+            location.coords.latitude,
+            location.coords.longitude
+          ),
           map
-        ).then((places) => {
-          setAlertPlace(places[0]);
+        ).then((place) => {
+          setAlertPlace(place[0]);
         });
       }
     }
@@ -155,9 +167,15 @@ export default function Index() {
 
   useEffect(() => {
     if (!map || !goo) return;
-
     setDirectionsRenderer(new goo.maps.DirectionsRenderer());
+    setAutocompleteService(new google.maps.places.AutocompleteService());
   }, [map, goo]);
+
+  const onFocus = async () => {
+    if (!goo || !map) return;
+    if (!sessionToken)
+      setSessionToken(new goo.maps.places.AutocompleteSessionToken());
+  };
 
   const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -202,39 +220,35 @@ export default function Index() {
   };
 
   const onPickupUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!goo || !map) return;
+    if (!goo || !map || !autocompleteService || !sessionToken || !location)
+      return;
     setPickupValue(e.target.value);
 
     setPlaces(
-      await getPlaces(
+      await getPredictions(
         goo,
-        e.target.value,
         map,
-        location
-          ? new google.maps.LatLng(
-              location.coords.latitude,
-              location.coords.longitude
-            )
-          : undefined
+        autocompleteService,
+        e.target.value,
+        sessionToken,
+        new goo.maps.LatLng(location.coords.latitude, location.coords.longitude)
       )
     );
   };
 
   const onDropoffUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!goo || !map) return;
+    if (!goo || !map || !location || !autocompleteService || !sessionToken)
+      return;
     setDropoffValue(e.target.value);
 
     setPlaces(
-      await getPlaces(
+      await getPredictions(
         goo,
-        e.target.value,
         map,
-        location
-          ? new google.maps.LatLng(
-              location.coords.latitude,
-              location.coords.longitude
-            )
-          : undefined
+        autocompleteService,
+        e.target.value,
+        sessionToken,
+        new goo.maps.LatLng(location.coords.latitude, location.coords.longitude)
       )
     );
   };
@@ -331,6 +345,7 @@ export default function Index() {
                       onChange={onPickupUpdate}
                       onFocus={() => {
                         setPlaces([]);
+                        onFocus();
                         setPickupFocused(true);
                         setDropoffFocused(false);
                       }}
@@ -365,6 +380,7 @@ export default function Index() {
                     value={dropoffValue}
                     onChange={onDropoffUpdate}
                     onFocus={() => {
+                      onFocus();
                       setPlaces([]);
                       setDropoffFocused(true);
                       setPickupFocused(false);
@@ -378,22 +394,40 @@ export default function Index() {
                         <li key={place.place_id}>
                           <button
                             className="hover:bg-indigo-100 rounded-s flex flex-col justify-start w-full p-2"
-                            onClick={() => {
+                            onClick={async () => {
                               if (pickupFocused) {
-                                setPickupValue(place.formatted_address);
+                                setPickupValue(
+                                  (
+                                    await getPlaceDetails(
+                                      goo!,
+                                      place.place_id,
+                                      map!,
+                                      sessionToken!
+                                    )
+                                  )?.formatted_address ?? ''
+                                );
                                 setPickupFocused(false);
                               }
                               if (dropoffFocused) {
-                                setDropoffValue(place.formatted_address);
+                                setDropoffValue(
+                                  (
+                                    await getPlaceDetails(
+                                      goo!,
+                                      place.place_id,
+                                      map!,
+                                      sessionToken!
+                                    )
+                                  )?.formatted_address ?? ''
+                                );
                                 setDropoffFocused(false);
                               }
                             }}
                           >
                             <h1 className="font-medium text-left">
-                              {place.name}
+                              {place.structured_formatting.main_text}
                             </h1>
                             <p className="text-left text-slate-600">
-                              {place.formatted_address}
+                              {place.structured_formatting.secondary_text}
                             </p>
                           </button>
                         </li>
