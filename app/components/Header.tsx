@@ -7,7 +7,7 @@ export function Header() {
   const [user] = useAuthState(auth);
 
   return (
-    <header className="absolute inset-x-0 top-0 z-10 flex flex-row justify-between p-5 bg-white shadow-sm">
+    <header className="fixed inset-x-0 top-0 z-10 flex flex-row justify-between p-5 md:bg-white md:shadow-sm">
       <Link className="flex flex-row items-center space-x-2" to="/">
         <span
           className="h-5 w-5 rounded-full 
