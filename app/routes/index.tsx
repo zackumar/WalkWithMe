@@ -82,6 +82,11 @@ export default function Index() {
       );
     }
 
+    map.panTo({
+      lat: location.coords.latitude,
+      lng: location.coords.longitude,
+    });
+
     if (marker) {
       marker.setPosition({
         lat: location.coords.latitude,
