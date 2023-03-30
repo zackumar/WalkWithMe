@@ -55,49 +55,40 @@ export default function Index() {
   const [alertPlace, setAlertPlace] =
     useState<google.maps.places.PlaceResult>();
 
-  const [markers, setMarkers] = useState<google.maps.Marker[]>([]);
+  const [marker, setMarker] = useState<google.maps.Marker>();
 
-  useEffect(()=> {
-    if(!goo || !map || !location) return;
+  useEffect(() => {
+    if (!goo || !map || !location) return;
+    if (!marker) {
+      const svgMarker = {
+        path: 'M25 50C38.8071 50 50 38.8071 50 25C50 11.1929 38.8071 0 25 0C11.1929 0 0 11.1929 0 25C0 38.8071 11.1929 50 25 50ZM25.5 37C32.4036 37 38 31.4036 38 24.5C38 17.5964 32.4036 12 25.5 12C18.5964 12 13 17.5964 13 24.5C13 31.4036 18.5964 37 25.5 37Z',
+        fillColor: '#ff0000',
+        fillOpacity: 0.9,
+        strokeWeight: 0,
+        rotation: 0,
+        scale: 0.5,
+        anchor: new google.maps.Point(15, 30),
+      };
 
-        //clear existing markers
-        if(markers.length > 0){
-          markers.forEach((marker)=>{
-            marker.setMap(null)
-          })
-          setMarkers([])
-        }
-        
-        const svgMarker = {
-          path: 'M25 50C38.8071 50 50 38.8071 50 25C50 11.1929 38.8071 0 25 0C11.1929 0 0 11.1929 0 25C0 38.8071 11.1929 50 25 50ZM25.5 37C32.4036 37 38 31.4036 38 24.5C38 17.5964 32.4036 12 25.5 12C18.5964 12 13 17.5964 13 24.5C13 31.4036 18.5964 37 25.5 37Z',
-          fillColor: '#ff0000',
-          fillOpacity: 0.9,
-          strokeWeight: 0,
-          rotation: 0,
-          scale: 0.5,
-          anchor: new google.maps.Point(15, 30),
-        };
-
-        map.panTo(
-          new goo.maps.LatLng(
-            location.coords.latitude,
-            location.coords.longitude
-          )
-        );
-
-        const temp = markers
-        temp.push(new google.maps.Marker({
+      setMarker(
+        new google.maps.Marker({
           position: {
             lat: location.coords.latitude,
             lng: location.coords.longitude,
           },
           icon: svgMarker,
           map: map,
+        })
+      );
+    }
 
-        }));
-        setMarkers(temp)
-
-  }, [location, goo, map])
+    if (marker) {
+      marker.setPosition({
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+      });
+    }
+  }, [location, goo, map, marker]);
 
   useEffect(() => {
     if (!routeId) return;
@@ -158,7 +149,6 @@ export default function Index() {
     if (!map || !goo) return;
 
     setDirectionsRenderer(new goo.maps.DirectionsRenderer());
-    
   }, [map, goo]);
 
   const onSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
@@ -276,7 +266,7 @@ export default function Index() {
           <div className="h-screen w-screen" id="map" ref={mapRef}></div>
         </div>
         <section className="absolute inset-2 top-1/2 md:top-[unset] md:left-10 md:bottom-10 md:h-3/4 md:w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
-          {(!(granted || location)) ? (
+          {!(granted || location) ? (
             <div className="flex flex-col h-full">
               <div className="grow flex flex-col justify-center items-center">
                 <h1 className="font-bold text-2xl text-slate-800 text-center">
@@ -286,7 +276,7 @@ export default function Index() {
               </div>
             </div>
           ) : null}
-          {!user && (granted || location)? (
+          {!user && (granted || location) ? (
             <div className="flex flex-col h-full">
               <div className="grow flex flex-col justify-center items-center">
                 <h1 className="font-bold text-2xl text-slate-800 text-center">
@@ -302,7 +292,11 @@ export default function Index() {
             </div>
           ) : null}
 
-          {!started && !walking && user && (granted || location) && alertCountdown !== 0 ? (
+          {!started &&
+          !walking &&
+          user &&
+          (granted || location) &&
+          alertCountdown !== 0 ? (
             <>
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Runner
