@@ -16,7 +16,6 @@ import {
 import {
   getRoute,
   getPlaces,
-  getLocation,
   useGoogleMap,
   secondsToEta,
   useWatchLocation,
@@ -341,10 +340,10 @@ export default function Index() {
                         className="fill-indigo-400 absolute right-4 top-4 w-8 h-8"
                         onClick={async (e) => {
                           e.preventDefault();
-                          const loc = await getLocation();
-                          if (!loc) return;
+
+                          if (!location) return;
                           setPickupValue(
-                            `${loc.coords.latitude}, ${loc.coords.longitude}`
+                            `${location.coords.latitude}, ${location.coords.longitude}`
                           );
                         }}
                       >
