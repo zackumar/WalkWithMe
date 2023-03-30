@@ -33,7 +33,7 @@ export default function BuddySystem() {
   const [buddyLocation, setBuddyLocation] = useState([0, 0]);
 
   useEffect(() => {
-    if(!location) return;
+    if (!location) return;
     setBuddyLocation([location.coords.latitude, location.coords.longitude]);
   }, [location]);
 
@@ -130,6 +130,9 @@ export default function BuddySystem() {
                             viewRoute(route.start, route.destination);
                             startRoute(route.id, user?.uid!);
                             setRouteId(route.id);
+                          }}
+                          onDeleteRoute={() => {
+                            deleteRoute(route.id);
                           }}
                         />
                       );
