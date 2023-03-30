@@ -72,6 +72,81 @@ export async function getPlaces(
   }) as Promise<google.maps.places.PlaceResult[]>;
 }
 
+export async function getAddressFromLatLon(
+  goo: typeof google,
+  location: google.maps.LatLng,
+  map: google.maps.Map
+) {
+  return new Promise((resolve, reject) => {
+    const service = new goo.maps.Geocoder();
+
+    service.geocode(
+      {
+        location: location,
+      },
+      (result, status) => {
+        if (status === google.maps.GeocoderStatus.OK) {
+          resolve(result ?? []);
+        } else {
+          reject(new Error(`Geocoder is ${status}`));
+        }
+      }
+    );
+  }) as Promise<google.maps.GeocoderResult[]>;
+}
+
+export async function getPlaceDetails(
+  goo: typeof google,
+  placeId: string,
+  map: google.maps.Map,
+  sessionToken: google.maps.places.AutocompleteSessionToken
+) {
+  return new Promise((resolve, reject) => {
+    const request = {
+      placeId: placeId,
+      fields: ['name', 'formatted_address', 'place_id'],
+      sessionToken,
+    };
+
+    const service = new goo.maps.places.PlacesService(map);
+
+    service.getDetails(request, (result, status) => {
+      if (status === google.maps.places.PlacesServiceStatus.OK) {
+        resolve(result);
+      } else {
+        reject(new Error(`PlacesServiceStatus is ${status}`));
+      }
+    });
+  }) as Promise<google.maps.places.PlaceResult | null>;
+}
+
+export async function getPredictions(
+  goo: typeof google,
+  map: google.maps.Map,
+  autocompleteService: google.maps.places.AutocompleteService,
+  locQuery: string,
+  sessionToken: google.maps.places.AutocompleteSessionToken,
+  location?: google.maps.LatLng
+) {
+  return new Promise((resolve, reject) => {
+    autocompleteService.getPlacePredictions(
+      {
+        input: locQuery,
+        sessionToken: sessionToken,
+        location: location,
+        radius: 10000,
+      },
+      (predictions, status) => {
+        if (status === goo.maps.places.PlacesServiceStatus.OK) {
+          resolve(predictions ?? []);
+        } else {
+          reject(new Error(`AutocompleteService is ${status}`));
+        }
+      }
+    );
+  }) as Promise<google.maps.places.AutocompletePrediction[]>;
+}
+
 export async function getLocation(): Promise<GeolocationPosition | null> {
   if (!navigator.geolocation) return null;
   return new Promise(function (resolve, reject) {
