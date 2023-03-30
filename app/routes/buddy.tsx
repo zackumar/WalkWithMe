@@ -42,7 +42,6 @@ export default function BuddySystem() {
   useEffect(() => {
     if (!goo || !map || !location) return;
     if (!marker) {
-
       setMarker(
         new google.maps.Marker({
           position: {
@@ -51,7 +50,7 @@ export default function BuddySystem() {
           },
           icon: {
             url: "data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg id='Layer_2' data-name='Layer 2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3Cstyle%3E .cls-1 %7B fill: %23818CF8; %7D .cls-2 %7B fill: %23fff; %7D %3C/style%3E%3C/defs%3E%3Cg id='Layer_1-2' data-name='Layer 1'%3E%3Ccircle class='cls-2' cx='50' cy='50' r='50'/%3E%3Ccircle class='cls-1' cx='50' cy='50' r='40'/%3E%3C/g%3E%3C/svg%3E",
-            scaledSize: new google.maps.Size(30, 30)
+            scaledSize: new google.maps.Size(30, 30),
           },
           map: map,
         })
@@ -99,7 +98,7 @@ export default function BuddySystem() {
     pickup: string | google.maps.LatLng,
     dropoff: string | google.maps.LatLng
   ) => {
-    if (!goo || !map || !directionsRenderer || !granted) return;
+    if (!goo || !map || !directionsRenderer || !(granted || location)) return;
 
     directionsRenderer.setMap(map);
     directionsRenderer.setOptions(DIRECTION_OPTIONS);
@@ -129,17 +128,17 @@ export default function BuddySystem() {
           <div className="md:hidden w-full flex flex-row justify-center">
             <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
           </div>
-          {!granted ? (
+          {!(granted || location) ? (
             <h1 className="font-bold text-2xl text-slate-800">
               Please enable location services to continue
             </h1>
           ) : null}
-          {!user && granted ? (
+          {!user && (granted || location) ? (
             <h1 className="font-bold text-2xl text-slate-800">
               Please login to continue
             </h1>
           ) : null}
-          {!routeId && granted && user ? (
+          {!routeId && (granted || location) && user ? (
             <>
               <h1 className="font-bold text-2xl text-slate-800">
                 Howdy, Buddy
