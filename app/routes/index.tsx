@@ -124,20 +124,24 @@ export default function Index() {
         setRouteStarted(true);
         clearInterval(intervalId);
 
-        getLocation().then((loc) => {
-          getPlaces(
-            goo,
-            `${loc?.coords.latitude}, ${loc?.coords.longitude}`,
-            map
-          ).then((places) => {
-            setAlertPlace(places[0]);
-          });
+        getPlaces(
+          goo,
+          `${location?.coords.latitude}, ${location?.coords.longitude}`,
+          map
+        ).then((places) => {
+          setAlertPlace(places[0]);
         });
       }
     }
 
     return () => clearInterval(intervalId);
-  }, [alertCountdown, goo, map]);
+  }, [
+    alertCountdown,
+    goo,
+    map,
+    location?.coords.latitude,
+    location?.coords.longitude,
+  ]);
 
   useEffect(() => {
     if (alertCountdown === 0 && alertPlace && routeId) {
@@ -261,11 +265,17 @@ export default function Index() {
   return (
     <div className="min-h-screen relative ">
       <Header />
-      <main className="relative bg-gray-500">
-        <div className="top-0 left-0 right-0 relative ">
-          <div className="h-screen w-screen" id="map" ref={mapRef}></div>
-        </div>
-        <section className="absolute inset-2 top-1/2 md:top-[unset] md:left-10 md:bottom-10 md:h-3/4 md:w-96 bg-white rounded-xl p-5 shadow-lg space-y-5">
+      <main className="relative">
+        <div
+          className="h-[50vh] md:h-screen w-screen"
+          id="map"
+          ref={mapRef}
+        ></div>
+
+        <section className="md:absolute md:left-10 md:bottom-10 md:h-3/4 md:w-96 z-10 relative w-screen h-[50vh] p-5 pt-2 bg-white rounded-xl shadow-lg space-y-5">
+          <div className="md:hidden w-full flex flex-row justify-center">
+            <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
+          </div>
           {!(granted || location) ? (
             <div className="flex flex-col h-full">
               <div className="grow flex flex-col justify-center items-center">
@@ -297,14 +307,14 @@ export default function Index() {
           user &&
           (granted || location) &&
           alertCountdown !== 0 ? (
-            <>
-              <h1 className="font-bold text-2xl text-slate-800">
-                Howdy, Runner
-              </h1>
-              <Form
-                className="space-y-2 flex flex-col justify-between h-[90%]"
-                onSubmit={onSubmit}
-              >
+            <Form
+              className="flex flex-col h-full overflow-y-scroll"
+              onSubmit={onSubmit}
+            >
+              <div className="space-y-5 pb-5">
+                <h1 className="font-bold text-2xl text-slate-800">
+                  Howdy, Runner
+                </h1>
                 <div>
                   <div className="relative">
                     <input
@@ -358,7 +368,7 @@ export default function Index() {
                   ></input>
                 </div>
                 {(dropoffFocused || pickupFocused) && places.length > 0 ? (
-                  <ul className="grow overflow-y-scroll mt-2 space-y-2">
+                  <ul className="grow space-y-2">
                     {places.map((place: any) => {
                       return (
                         <li key={place.place_id}>
@@ -388,7 +398,7 @@ export default function Index() {
                   </ul>
                 ) : null}
                 {isRequestPage ? (
-                  <div className="space-y-6 grow">
+                  <div className="space-y-6">
                     <h2 className="text-xl font-semibold">Your Trip</h2>
                     <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
                       <svg
@@ -430,30 +440,30 @@ export default function Index() {
                     </p>
                   </div>
                 ) : null}
-                <div className="pt-4 border-t border-t-slate-300">
-                  {!isRequested ? (
-                    <button
-                      className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-                      name="submit"
-                      value="details"
-                      type="submit"
-                      disabled={isRequested}
-                    >
-                      {!isRequestPage ? 'Details' : null}
-                      {isRequestPage && !isRequested ? 'Request Walk' : null}
-                    </button>
-                  ) : null}
-                  {isRequested ? (
-                    <p className="text-center">
-                      You will be notified when someone is on the way.
-                    </p>
-                  ) : null}
-                </div>
-              </Form>
-            </>
+              </div>
+              <div className="pt-4 border-t border-t-slate-300 mt-auto pb-5">
+                {!isRequested ? (
+                  <button
+                    className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                    name="submit"
+                    value="details"
+                    type="submit"
+                    disabled={isRequested}
+                  >
+                    {!isRequestPage ? 'Details' : null}
+                    {isRequestPage && !isRequested ? 'Request Walk' : null}
+                  </button>
+                ) : null}
+                {isRequested ? (
+                  <p className="text-center">
+                    You will be notified when someone is on the way.
+                  </p>
+                ) : null}
+              </div>
+            </Form>
           ) : null}
           {started && !walking && alertCountdown !== 0 ? (
-            <div className="w-full h-full flex flex-col items-center">
+            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-scroll space-y-4">
               <div className="grow flex flex-col items-center justify-center space-y-4">
                 <img
                   className="rounded-full"
@@ -467,7 +477,7 @@ export default function Index() {
                 </h1>
               </div>
               <button
-                className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full "
                 onClick={() => {
                   setWalking(true);
                   startWalking(routeId!);
@@ -478,7 +488,7 @@ export default function Index() {
             </div>
           ) : null}
           {walking && !alertMode ? (
-            <div className="w-full h-full flex flex-col items-center">
+            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-scroll space-y-4">
               <div className="grow flex flex-col items-center space-y-4">
                 <h1 className="text-3xl font-medium text-center">
                   Your safety is our highest priority.
@@ -544,7 +554,7 @@ export default function Index() {
             </div>
           ) : null}
           {alertMode ? (
-            <div className="w-full h-full flex flex-col items-center">
+            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-scroll space-y-4">
               <div className="grow flex flex-col items-center space-y-4">
                 <h1 className="text-4xl font-medium text-center">
                   You are in Alert Mode
@@ -568,7 +578,7 @@ export default function Index() {
             </div>
           ) : null}
           {alertCountdown === 0 ? (
-            <div className="w-full h-full flex flex-col items-center">
+            <div className="w-full h-full flex flex-col items-center p-5 overflow-y-scroll space-y-4">
               <div className="grow flex flex-col items-center space-y-4">
                 <h1 className="text-4xl font-medium text-center">
                   The authorities have been contacted
