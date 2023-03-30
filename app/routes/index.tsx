@@ -295,7 +295,7 @@ export default function Index() {
             <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
           </div>
           {!(granted || location) ? (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full p-5">
               <div className="grow flex flex-col justify-center items-center">
                 <h1 className="font-bold text-2xl text-slate-800 text-center">
                   Location services are disabled. Please enable them to get
@@ -305,7 +305,7 @@ export default function Index() {
             </div>
           ) : null}
           {!user && (granted || location) ? (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full p-5">
               <div className="grow flex flex-col justify-center items-center">
                 <h1 className="font-bold text-2xl text-slate-800 text-center">
                   Howdy Runner! Please log in to get started!
