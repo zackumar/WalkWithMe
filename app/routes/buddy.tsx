@@ -5,6 +5,7 @@ import {
   secondsToEta,
   useGoogleMap,
   useWatchLocation,
+  getLocation,
 } from '~/utils/mapUtils';
 
 import {
@@ -28,6 +29,14 @@ export default function BuddySystem() {
   const [location, available, granted] = useWatchLocation();
 
   const [routes, setRoutes] = useState<any>([]);
+
+  const [buddyLocation, setBuddyLocation] = useState([0, 0]);
+
+  useEffect(() => {
+    if(!location) return;
+    setBuddyLocation([location.coords.latitude, location.coords.longitude]);
+  }, [location]);
+
   const [routeId, setRouteId] = useState('');
   const [directionsRenderer, setDirectionsRenderer] =
     useState<google.maps.DirectionsRenderer>();
@@ -61,14 +70,14 @@ export default function BuddySystem() {
     pickup: string | google.maps.LatLng,
     dropoff: string | google.maps.LatLng
   ) => {
-    if (!goo || !map || !directionsRenderer) return;
+    if (!goo || !map || !directionsRenderer || !granted) return;
 
     directionsRenderer.setMap(map);
     directionsRenderer.setOptions(DIRECTION_OPTIONS);
 
     const route = await getRoute(
       goo,
-      new goo.maps.LatLng(29.42315, -98.49879),
+      new goo.maps.LatLng(buddyLocation[0], buddyLocation[1]),
       dropoff,
       [{ location: pickup }]
     );
@@ -80,7 +89,6 @@ export default function BuddySystem() {
         }, 0)
       )
     );
-
     directionsRenderer.setDirections(route);
   };
 
