@@ -256,9 +256,10 @@ export default function Index() {
   };
 
   const onPickupUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!goo || !map || !autocompleteService || !sessionToken || !location)
-      return;
+    if (!goo || !map) return;
     setPickupValue(e.target.value);
+
+    if (!autocompleteService || !sessionToken || !location) return;
 
     setPlaces(
       await getPredictions(
@@ -273,9 +274,10 @@ export default function Index() {
   };
 
   const onDropoffUpdate: ChangeEventHandler<HTMLInputElement> = async (e) => {
-    if (!goo || !map || !location || !autocompleteService || !sessionToken)
-      return;
+    if (!goo || !map) return;
     setDropoffValue(e.target.value);
+
+    if (!autocompleteService || !sessionToken || !location) return;
 
     setPlaces(
       await getPredictions(
