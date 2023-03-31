@@ -222,7 +222,9 @@ export function useWatchLocation() {
           }
         };
       });
-    const watchId = navigator.geolocation.watchPosition(setLocation);
+    const watchId = navigator.geolocation.watchPosition(setLocation, () => {}, {
+      enableHighAccuracy: true,
+    });
 
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
