@@ -66,6 +66,7 @@ export default function Index() {
 
   useEffect(() => {
     if (!goo || !map || !location) return;
+    console.log(location);
     if (!marker) {
       setMarker(
         new google.maps.Marker({
@@ -286,6 +287,7 @@ export default function Index() {
         ></div>
 
         <section className="md:absolute md:left-10 md:bottom-10 md:h-3/4 md:w-96 z-10 relative w-screen h-[50vh] p-5 pt-2 bg-white rounded-xl shadow-lg space-y-5">
+          {location?.coords.accuracy}
           <div className="md:hidden w-full flex flex-row justify-center">
             <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
           </div>
