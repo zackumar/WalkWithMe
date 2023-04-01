@@ -4,12 +4,17 @@ import { useEffect, useRef, useState } from 'react';
 import { useGoogleMap, useWatchLocation } from '~/utils/mapUtils';
 
 import { Header } from '../components/Header';
+import { auth, signInWithGoogle } from '~/firebase';
+import { useAuthState } from 'react-firebase-hooks/auth';
 
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
   const [goo, map] = useGoogleMap(mapRef);
 
-  const [userLocation] = useWatchLocation();
+  const [user] = useAuthState(auth);
+
+  const [userLocation, available, granted] = useWatchLocation();
+
   const [marker, setMarker] = useState<google.maps.Marker>();
 
   const [directionsRenderer, setDirectionsRenderer] =
@@ -69,7 +74,34 @@ export default function Index() {
           <div className="md:hidden w-full flex flex-row justify-center">
             <div className="w-12 h-1 bg-slate-200 rounded-full"></div>
           </div>
-          <Outlet context={{ goo, map, directionsRenderer }} />
+          {!(granted || userLocation) ? (
+            <div className="flex flex-col h-full p-5">
+              <div className="grow flex flex-col justify-center items-center">
+                <h1 className="font-bold text-2xl text-slate-800 text-center">
+                  Location services are disabled. Please enable them to get
+                  started!
+                </h1>
+              </div>
+            </div>
+          ) : null}
+          {!user && (granted || userLocation) ? (
+            <div className="flex flex-col h-full p-5">
+              <div className="grow flex flex-col justify-center items-center">
+                <h1 className="font-bold text-2xl text-slate-800 text-center">
+                  Howdy! Please log in to get started.
+                </h1>
+              </div>
+              <button
+                className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                onClick={signInWithGoogle}
+              >
+                Log in
+              </button>
+            </div>
+          ) : null}
+          {user && (granted || userLocation) ? (
+            <Outlet context={{ goo, map, directionsRenderer }} />
+          ) : null}
         </section>
       </main>
     </div>
