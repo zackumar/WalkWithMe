@@ -1,6 +1,6 @@
-# Welcome to Remix!
+# WalkWithMe
 
-- [Remix Docs](https://remix.run/docs)
+WalkWithMe is a tool allowing users to request a buddy to walk them to their destination for use by students or other members of the community
 
 ## Development
 
