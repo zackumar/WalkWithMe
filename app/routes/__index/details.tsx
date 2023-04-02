@@ -1,15 +1,40 @@
-import type { LoaderFunction } from '@remix-run/cloudflare';
+import type { ActionFunction, LoaderFunction } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
 import { redirect } from '@remix-run/cloudflare';
 import {
   Form,
+  useActionData,
   useNavigate,
   useOutletContext,
   useSearchParams,
 } from '@remix-run/react';
 import { useEffect, useState } from 'react';
+import invariant from 'tiny-invariant';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '~/firebase';
 import { getRoute, secondsToEta } from '~/utils/mapUtils';
+import { addRoute } from '~/firebase.server';
+
+export const action: ActionFunction = async ({ request }) => {
+  const formData = await request.formData();
+  const uid = formData.get('uid') as string;
+  const displayName = formData.get('displayName') as string;
+  const pickup = formData.get('pickup') as string;
+  const dropoff = formData.get('dropoff') as string;
+  const eta = formData.get('eta') as unknown as number;
+
+  invariant(uid, 'Uid is required');
+  invariant(displayName, 'Display name is required');
+  invariant(pickup, 'Pickup is required');
+  invariant(dropoff, 'Dropoff is required');
+  invariant(eta, 'ETA is required');
+
+  const routeId = await addRoute(uid, displayName, pickup, dropoff);
+
+  return json({
+    routeId: routeId,
+  });
+};
 
 export const loader: LoaderFunction = async ({ request }) => {
   const searchParams = new URL(request.url).searchParams;
@@ -27,6 +52,8 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function Details() {
   const [searchParams] = useSearchParams();
+  const data = useActionData();
+
   const { goo, map, directionsRenderer } = useOutletContext<{
     goo?: typeof google;
     map?: google.maps.Map;
@@ -69,7 +96,7 @@ export default function Details() {
   return (
     <Form
       className="flex flex-col h-full overflow-y-auto"
-      action="/request"
+      // action="/request"
       method="post"
     >
       <input hidden name="eta" value={eta} />
@@ -149,12 +176,18 @@ export default function Details() {
         </div>
       </div>
       <div className="pt-4 border-t border-t-slate-300 mt-auto pb-5">
-        <button
-          className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-          type="submit"
-        >
-          Request Walk
-        </button>
+        {!data?.routeId ? (
+          <button
+            className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+            type="submit"
+          >
+            Request Walk
+          </button>
+        ) : (
+          <p className="text-center">
+            You will be notified when someone is on the way.
+          </p>
+        )}
       </div>
     </Form>
   );

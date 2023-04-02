@@ -73,7 +73,7 @@ export class FirestoreClient {
       throw new Error(data.error.message);
     }
 
-    return data.name.split('/').pop();
+    return data.name.split('/').pop() as string;
   }
 }
 
