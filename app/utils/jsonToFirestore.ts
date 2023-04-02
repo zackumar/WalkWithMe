@@ -8,7 +8,33 @@ export class Reference {
   constructor(public path: string) {}
 }
 
-export type JSONValue =
+export type FirestoreFormattedObject = {
+  [x: string]: FirestoreFormattedValue;
+};
+
+export type FirestoreFormattedValue = {
+  stringValue?: string;
+  integerValue?: number | string;
+  doubleValue?: number | string;
+  booleanValue?: boolean;
+  nullValue?: null;
+  timestampValue?: string;
+  referenceValue?: string;
+  geoPointValue?: {
+    latitude: number;
+    longitude: number;
+  };
+  arrayValue?: {
+    values: FirestoreFormattedValue[];
+  };
+  mapValue?: {
+    fields: {
+      [x: string]: FirestoreFormattedValue;
+    };
+  };
+};
+
+export type FirestoreObject =
   | string
   | number
   | boolean
@@ -16,10 +42,10 @@ export type JSONValue =
   | Geopoint
   | Reference
   | Date
-  | { [x: string]: JSONValue }
-  | Array<JSONValue>;
+  | { [x: string]: FirestoreObject }
+  | Array<FirestoreObject>;
 
-export function jsonToFirestoreHelper(json: JSONValue): any {
+function jsonToFirestoreHelper(json: FirestoreObject): FirestoreFormattedValue {
   if (json instanceof Geopoint) {
     return {
       geoPointValue: {
@@ -70,6 +96,75 @@ export function jsonToFirestoreHelper(json: JSONValue): any {
   return { nullValue: null };
 }
 
-export function jsonToFirestore(json: JSONValue): any {
-  return jsonToFirestoreHelper(json).mapValue.fields;
+export function jsonToFirestore(
+  json: FirestoreObject
+): FirestoreFormattedObject {
+  return jsonToFirestoreHelper(json)?.mapValue?.fields ?? {};
+}
+
+function firestoreToJsonHelper(
+  firestore: FirestoreFormattedValue
+): FirestoreObject {
+  if (firestore.stringValue) {
+    return firestore.stringValue;
+  }
+
+  if (firestore.integerValue) {
+    if (typeof firestore.integerValue === 'string') {
+      return parseInt(firestore.integerValue);
+    }
+    return firestore.integerValue;
+  }
+
+  if (firestore.doubleValue) {
+    if (typeof firestore.doubleValue === 'string') {
+      return parseFloat(firestore.doubleValue);
+    }
+    return firestore.doubleValue;
+  }
+
+  if (firestore.booleanValue) {
+    return firestore.booleanValue;
+  }
+
+  if (firestore.nullValue) {
+    return null;
+  }
+
+  if (firestore.timestampValue) {
+    return new Date(firestore.timestampValue);
+  }
+
+  if (firestore.referenceValue) {
+    return new Reference(firestore.referenceValue);
+  }
+
+  if (firestore.geoPointValue) {
+    return new Geopoint(
+      firestore.geoPointValue.latitude,
+      firestore.geoPointValue.longitude
+    );
+  }
+
+  if (firestore.arrayValue) {
+    return firestore.arrayValue.values.map(firestoreToJsonHelper);
+  }
+
+  if (firestore.mapValue) {
+    return Object.entries(firestore.mapValue.fields).reduce(
+      (acc: any, [key, value]) => {
+        acc[key] = firestoreToJsonHelper(value);
+        return acc;
+      },
+      {}
+    );
+  }
+
+  return null;
+}
+
+export function firestoreToJson(
+  firestore: FirestoreFormattedObject
+): FirestoreObject {
+  return firestoreToJsonHelper({ mapValue: { fields: firestore } });
 }

@@ -1,7 +1,8 @@
 //https://blog.cloudflare.com/api-at-the-edge-workers-and-firestore/
 
 import * as jose from 'jose';
-import type { Geopoint, JSONValue } from './utils/jsonToFirestore';
+import type { Geopoint, FirestoreObject } from './utils/jsonToFirestore';
+import { firestoreToJson } from './utils/jsonToFirestore';
 import { jsonToFirestore } from './utils/jsonToFirestore';
 import { getContext } from './context.server';
 
@@ -33,16 +34,28 @@ export class FirestoreClient {
   }
 
   async getDocument(collection: string, documentId: string) {
-    let headers = await this.authHeaders();
-    return fetch(`${this.url}/${collection}/${documentId}`, {
+    const headers = await this.authHeaders();
+    const resp = await fetch(`${this.url}/${collection}/${documentId}`, {
       headers,
     });
+
+    const data = (await resp.json()) as any;
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+
+    data.fields = firestoreToJson(data.fields);
+    return data;
   }
 
-  async addDocument(collection: string, doc: JSONValue, documentId?: string) {
-    let headers = await this.authHeaders();
+  async addDocument(
+    collection: string,
+    doc: FirestoreObject,
+    documentId?: string
+  ) {
+    const headers = await this.authHeaders();
 
-    return fetch(
+    const resp = await fetch(
       `${this.url}/${collection}${
         documentId ? `?documentId=${encodeURIComponent(documentId)}` : ''
       }`,
@@ -54,6 +67,13 @@ export class FirestoreClient {
         }),
       }
     );
+
+    const data = (await resp.json()) as any;
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+
+    return data.name.split('/').pop();
   }
 }
 
