@@ -1,4 +1,8 @@
-import type { LinksFunction, MetaFunction } from '@remix-run/cloudflare';
+import type {
+  LinksFunction,
+  LoaderFunction,
+  MetaFunction,
+} from '@remix-run/cloudflare';
 import {
   Links,
   LiveReload,
@@ -9,6 +13,7 @@ import {
 } from '@remix-run/react';
 
 import stylesheet from '~/styles/tailwind.css';
+import { setContext } from './context.server';
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -19,6 +24,11 @@ export const meta: MetaFunction = () => ({
   title: 'WalkWithMe: Walk Safe, Feel Safe',
   viewport: 'width=device-width,initial-scale=1',
 });
+
+export const loader: LoaderFunction = async ({ context }) => {
+  setContext(context);
+  return null;
+};
 
 export default function App() {
   return (

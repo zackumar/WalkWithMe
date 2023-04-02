@@ -3,7 +3,7 @@ import type { ChangeEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 
-import { auth, signInWithGoogle } from '~/firebase';
+import { auth } from '~/firebase';
 import {
   useWatchLocation,
   getPredictions,
@@ -19,7 +19,7 @@ export default function Index() {
   }>();
 
   const [user] = useAuthState(auth);
-  const [userLocation, available, granted] = useWatchLocation();
+  const [userLocation] = useWatchLocation();
 
   const [pickupFocused, setPickupFocused] = useState(false);
   const [dropoffFocused, setDropoffFocused] = useState(false);
