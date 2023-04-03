@@ -96,7 +96,7 @@ export default function Details() {
   return (
     <Form
       className="flex flex-col h-full overflow-y-auto"
-      // action="/request"
+      // action="/walk/request"
       method="post"
     >
       <input hidden name="eta" value={eta} />

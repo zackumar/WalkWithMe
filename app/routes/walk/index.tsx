@@ -96,7 +96,7 @@ export default function Index() {
   return (
     <Form
       className="flex flex-col h-full overflow-y-auto"
-      action="/details"
+      action="/walk/details"
       method="get"
     >
       <div className="space-y-5 pb-5">
