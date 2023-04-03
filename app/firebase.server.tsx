@@ -1,7 +1,7 @@
 //https://blog.cloudflare.com/api-at-the-edge-workers-and-firestore/
 
 import * as jose from 'jose';
-import type { Geopoint, FirestoreObject } from './utils/jsonToFirestore';
+import { Geopoint, FirestoreObject } from './utils/jsonToFirestore';
 import { firestoreToJson } from './utils/jsonToFirestore';
 import { jsonToFirestore } from './utils/jsonToFirestore';
 import { getContext } from './context.server';
@@ -118,27 +118,18 @@ export function getFirestore() {
 export async function addRoute(
   userId: string,
   displayName: string,
-  start: Geopoint | string,
-  destination: Geopoint | string,
-  waypoints?: Geopoint | string
+  origin: Geopoint,
+  originName: string,
+  destination: Geopoint,
+  destinationName: string
 ) {
-  return await getFirestore().addDocument(
-    'routes',
-    waypoints
-      ? {
-          userId,
-          displayName,
-          start,
-          waypoints,
-          destination,
-          timestamp: new Date(),
-        }
-      : {
-          userId,
-          displayName,
-          start,
-          destination,
-          timestamp: new Date(),
-        }
-  );
+  return await getFirestore().addDocument('routes', {
+    userId,
+    displayName,
+    origin,
+    originName,
+    destination,
+    destinationName,
+    timestamp: new Date(),
+  });
 }

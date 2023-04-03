@@ -24,10 +24,10 @@ export default function Index() {
   const [pickupFocused, setPickupFocused] = useState(false);
   const [dropoffFocused, setDropoffFocused] = useState(false);
   const [pickupValue, setPickupValue] = useState(
-    searchParams.get('origin') ?? ''
+    searchParams.get('originName') ?? ''
   );
   const [dropoffValue, setDropoffValue] = useState(
-    searchParams.get('destination') ?? ''
+    searchParams.get('destinationName') ?? ''
   );
 
   const [autocompleteService, setAutocompleteService] =
@@ -99,6 +99,17 @@ export default function Index() {
       action="/walk/details"
       method="get"
     >
+      <input
+        hidden
+        name="origin"
+        defaultValue={searchParams.get('origin') ?? ''}
+      />
+      <input
+        hidden
+        name="destination"
+        defaultValue={searchParams.get('destination') ?? ''}
+      />
+
       <div className="space-y-5 pb-5">
         <h1 className="font-bold text-2xl text-slate-800">
           Howdy, {user.displayName}
@@ -107,7 +118,7 @@ export default function Index() {
           <div className="relative">
             <input
               className="outline-[#f7a0a4] border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
-              name="origin"
+              name="originName"
               type="text"
               placeholder="Pickup"
               required
@@ -125,9 +136,14 @@ export default function Index() {
                 className="fill-indigo-400 absolute right-4 top-4 w-8 h-8"
                 onClick={async (e) => {
                   e.preventDefault();
-                  setPickupValue(
+
+                  setPickupValue('Current Location');
+                  searchParams.set(
+                    'origin',
                     `${userLocation.coords.latitude}, ${userLocation.coords.longitude}`
                   );
+                  searchParams.set('originName', 'Current Location');
+                  setSearchParams(searchParams);
                 }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
@@ -138,7 +154,7 @@ export default function Index() {
           </div>
           <input
             className="outline-[#f7a0a4] focus:border-t border-b border-l border-r border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
-            name="destination"
+            name="destinationName"
             type="text"
             placeholder="Drop off"
             required
@@ -162,25 +178,29 @@ export default function Index() {
                     onClick={async (e) => {
                       e.preventDefault();
 
-                      const address =
-                        (
-                          await getPlaceDetails(
-                            goo!,
-                            place.place_id,
-                            map!,
-                            sessionToken!
-                          )
-                        )?.formatted_address ?? '';
+                      const details = await getPlaceDetails(
+                        goo!,
+                        place.place_id,
+                        map!,
+                        sessionToken!
+                      );
+
+                      const coords = `${details?.geometry?.location?.lat()},${details?.geometry?.location?.lng()}`;
 
                       if (pickupFocused) {
-                        setPickupValue(address);
-                        searchParams.set('origin', address);
+                        setPickupValue(details?.name ?? '');
+                        searchParams.set('origin', coords);
+                        searchParams.set('originName', details?.name ?? '');
                         setSearchParams(searchParams);
                         setPickupFocused(false);
                       }
                       if (dropoffFocused) {
-                        setDropoffValue(address);
-                        searchParams.set('destination', address);
+                        setDropoffValue(details?.name ?? '');
+                        searchParams.set('destination', coords);
+                        searchParams.set(
+                          'destinationName',
+                          details?.name ?? ''
+                        );
                         setSearchParams(searchParams);
                         setDropoffFocused(false);
                       }

@@ -14,22 +14,45 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '~/firebase';
 import { getRoute, secondsToEta } from '~/utils/mapUtils';
 import { addRoute } from '~/firebase.server';
+import { Geopoint } from '~/utils/jsonToFirestore';
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const uid = formData.get('uid') as string;
   const displayName = formData.get('displayName') as string;
-  const pickup = formData.get('pickup') as string;
-  const dropoff = formData.get('dropoff') as string;
+  const origin = formData.get('origin') as string;
+  const destination = formData.get('destination') as string;
+  const originName = formData.get('originName') as string;
+  const destinationName = formData.get('destinationName') as string;
   const eta = formData.get('eta') as unknown as number;
 
   invariant(uid, 'Uid is required');
   invariant(displayName, 'Display name is required');
-  invariant(pickup, 'Pickup is required');
-  invariant(dropoff, 'Dropoff is required');
+  invariant(origin, 'Origin is required');
+  invariant(destination, 'Destination is required');
+  invariant(originName, 'Origin name is required');
+  invariant(destinationName, 'Destination name is required');
   invariant(eta, 'ETA is required');
 
-  const routeId = await addRoute(uid, displayName, pickup, dropoff);
+  const originSplit = origin.split(',');
+  const originGeopoint = new Geopoint(
+    parseFloat(originSplit[0]),
+    parseFloat(originSplit[1])
+  );
+  const destinationSplit = destination.split(',');
+  const destinationGeopoint = new Geopoint(
+    parseFloat(destinationSplit[0]),
+    parseFloat(destinationSplit[1])
+  );
+
+  const routeId = await addRoute(
+    uid,
+    displayName,
+    originGeopoint,
+    originName,
+    destinationGeopoint,
+    destinationName
+  );
 
   return json({
     routeId: routeId,
@@ -40,11 +63,15 @@ export const loader: LoaderFunction = async ({ request }) => {
   const searchParams = new URL(request.url).searchParams;
 
   if (!searchParams.has('origin') && !searchParams.has('destination')) {
-    return redirect('/');
+    return redirect('/walk');
   } else if (!searchParams.has('origin') && searchParams.has('destination')) {
-    return redirect('/?destination=' + searchParams.get('destination'));
+    return redirect('/walk?destination=' + searchParams.get('destination'));
   } else if (searchParams.has('origin') && !searchParams.has('destination')) {
-    return redirect('/?origin=' + searchParams.get('origin'));
+    return redirect('/walk?origin=' + searchParams.get('origin'));
+  }
+
+  if (!searchParams.has('originName') || !searchParams.has('destinationName')) {
+    return redirect('/walk');
   }
 
   return null;
@@ -94,14 +121,20 @@ export default function Details() {
   if (!user) return null;
 
   return (
-    <Form
-      className="flex flex-col h-full overflow-y-auto"
-      // action="/walk/request"
-      method="post"
-    >
-      <input hidden name="eta" value={eta} />
-      <input hidden name="uid" value={user.uid} />
-      <input hidden name="displayName" value={user.displayName ?? ''} />
+    <Form className="flex flex-col h-full overflow-y-auto" method="post">
+      <input hidden name="eta" defaultValue={eta} />
+      <input hidden name="uid" defaultValue={user.uid} />
+      <input hidden name="displayName" defaultValue={user.displayName ?? ''} />
+      <input
+        hidden
+        name="origin"
+        defaultValue={searchParams.get('origin') ?? ''}
+      />
+      <input
+        hidden
+        name="destination"
+        defaultValue={searchParams.get('destination') ?? ''}
+      />
 
       <div className="space-y-5 pb-5">
         <h1 className="font-bold text-2xl text-slate-800">
@@ -111,25 +144,35 @@ export default function Details() {
           <div className="relative">
             <input
               className="outline-[#f7a0a4] border border-slate-200 bg-slate-100 rounded-t-lg p-5 w-full placeholder:text-slate-500"
-              name="pickup"
+              name="originName"
               type="text"
               placeholder="Pickup"
               required
-              defaultValue={searchParams.get('origin') || ''}
+              defaultValue={searchParams.get('originName') || ''}
               onClick={() => {
-                navigate('/?destination=' + searchParams.get('destination'));
+                navigate(
+                  '/walk?destination=' +
+                    searchParams.get('destination') +
+                    '&destinationName=' +
+                    searchParams.get('destinationName')
+                );
               }}
             ></input>
           </div>
           <input
             className="outline-[#f7a0a4] focus:border-t border-b border-l border-r border-slate-200 bg-slate-100 rounded-b-lg p-5 w-full placeholder:text-slate-500"
-            name="dropoff"
+            name="destinationName"
             type="text"
             placeholder="Drop off"
             required
-            defaultValue={searchParams.get('destination') || ''}
+            defaultValue={searchParams.get('destinationName') || ''}
             onClick={() => {
-              navigate('/?origin=' + searchParams.get('origin'));
+              navigate(
+                '/walk?origin=' +
+                  searchParams.get('origin') +
+                  '&originName=' +
+                  searchParams.get('originName')
+              );
             }}
           ></input>
         </div>
@@ -146,7 +189,7 @@ export default function Details() {
               <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
             </svg>
             <p className="col-span-4 text-base overflow-hidden text-ellipsis whitespace-nowrap block text-start">
-              {searchParams.get('origin') || 'Pickup'}
+              {searchParams.get('originName') || 'Pickup'}
             </p>
             <p className="col-span-1 text-xs text-right font-semibold">
               Pick up
@@ -163,7 +206,7 @@ export default function Details() {
               <circle cx="25.5" cy="24.5" r="12.5" fill="white" />
             </svg>
             <p className="col-span-4 overflow-hidden text-ellipsis whitespace-nowrap block text-start">
-              {searchParams.get('destination') || 'Drop off'}
+              {searchParams.get('destinationName') || 'Drop off'}
             </p>
             <p className="col-span-1 text-xs text-right font-semibold">
               Drop-off
