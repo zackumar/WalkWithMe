@@ -37,7 +37,6 @@ export async function getRoute(
 
   return directionsService.route(request, (result, status) => {
     if (status == google.maps.DirectionsStatus.OK) {
-      console.log(result);
       return result;
     }
   });
@@ -104,7 +103,7 @@ export async function getPlaceDetails(
   return new Promise((resolve, reject) => {
     const request = {
       placeId: placeId,
-      fields: ['name', 'formatted_address', 'place_id'],
+      fields: ['name', 'formatted_address', 'place_id', 'geometry'],
       sessionToken,
     };
 

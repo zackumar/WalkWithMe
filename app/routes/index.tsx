@@ -1,8 +1,10 @@
+import { Header } from '../components/Header';
+import type { LoaderFunction } from '@remix-run/cloudflare';
+import { redirect } from '@remix-run/cloudflare';
 import { Form } from '@remix-run/react';
 import type { ChangeEventHandler, FormEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-
 import {
   addRoute,
   auth,
@@ -23,7 +25,9 @@ import {
   getAddressFromLatLon,
 } from '~/utils/mapUtils';
 
-import { Header } from '../components/Header';
+export const loader: LoaderFunction = async () => {
+  return redirect('/walk');
+};
 
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
