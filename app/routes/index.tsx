@@ -1,4 +1,6 @@
 import { Header } from '../components/Header';
+import type { LoaderFunction } from '@remix-run/cloudflare';
+import { redirect } from '@remix-run/cloudflare';
 import { Form } from '@remix-run/react';
 import type { ChangeEventHandler, FormEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
@@ -22,6 +24,10 @@ import {
   getPlaceDetails,
   getAddressFromLatLon,
 } from '~/utils/mapUtils';
+
+export const loader: LoaderFunction = async () => {
+  return redirect('/walk');
+};
 
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
