@@ -1,8 +1,8 @@
+import HamburgerSVG from './HamburgerSVG';
 import { Link } from '@remix-run/react';
 import React, { useState } from 'react';
-import { auth, logout, signInWithGoogle } from '~/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import HamburgerSVG from './HamburgerSVG';
+import { auth, logout, signInWithGoogle } from '~/firebase';
 
 export function Header() {
   const [user] = useAuthState(auth);
