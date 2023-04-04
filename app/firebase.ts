@@ -20,6 +20,7 @@ import {
   updateDoc,
   getDoc,
 } from 'firebase/firestore';
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -86,6 +87,20 @@ export async function getUser(uid: string) {
   const q = query(collection(db, 'users'), where('uid', '==', uid));
   const docs = await getDocs(q);
   return docs.docs[0].data();
+}
+
+export async function getRouteFromUid(uid: string) {
+  const q = query(collection(db, 'routes'), where('userId', '==', uid));
+  const docs = await getDocs(q);
+  return docs.empty
+    ? undefined
+    : { id: docs.docs[0].id, ...docs.docs[0].data() };
+}
+
+export async function hasRoute(uid: string) {
+  const q = query(collection(db, 'routes'), where('userId', '==', uid));
+  const docs = await getDocs(q);
+  return docs.docs.length > 0;
 }
 
 export async function startRoute(routeId: string, uid: string) {

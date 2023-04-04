@@ -1,20 +1,18 @@
 import type { ActionFunction, LoaderFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
 import { redirect } from '@remix-run/cloudflare';
 import {
   Form,
-  useActionData,
   useNavigate,
   useOutletContext,
   useSearchParams,
 } from '@remix-run/react';
 import { useEffect, useState } from 'react';
-import invariant from 'tiny-invariant';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '~/firebase';
-import { getRoute, secondsToEta } from '~/utils/mapUtils';
+import invariant from 'tiny-invariant';
+import { auth, hasRoute } from '~/firebase';
 import { addRoute } from '~/firebase.server';
 import { Geopoint } from '~/utils/jsonToFirestore';
+import { getRoute, secondsToEta } from '~/utils/mapUtils';
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
@@ -45,7 +43,7 @@ export const action: ActionFunction = async ({ request }) => {
     parseFloat(destinationSplit[1])
   );
 
-  const routeId = await addRoute(
+  await addRoute(
     uid,
     displayName,
     originGeopoint,
@@ -54,9 +52,7 @@ export const action: ActionFunction = async ({ request }) => {
     destinationName
   );
 
-  return json({
-    routeId: routeId,
-  });
+  return redirect('/walk/route');
 };
 
 export const loader: LoaderFunction = async ({ request }) => {
@@ -79,7 +75,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export default function Details() {
   const [searchParams] = useSearchParams();
-  const data = useActionData();
 
   const { goo, map, directionsRenderer } = useOutletContext<{
     goo?: typeof google;
@@ -91,6 +86,17 @@ export default function Details() {
   const [user] = useAuthState(auth);
 
   const [eta, setEta] = useState<number>();
+
+  useEffect(() => {
+    if (!user) return;
+    async function checkRoute() {
+      if (await hasRoute(user?.uid ?? '')) {
+        navigate('/walk/route');
+      }
+    }
+
+    checkRoute();
+  }, [user, navigate]);
 
   useEffect(() => {
     async function getEta() {
@@ -219,18 +225,12 @@ export default function Details() {
         </div>
       </div>
       <div className="pt-4 border-t border-t-slate-300 mt-auto pb-5">
-        {!data?.routeId ? (
-          <button
-            className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-            type="submit"
-          >
-            Request Walk
-          </button>
-        ) : (
-          <p className="text-center">
-            You will be notified when someone is on the way.
-          </p>
-        )}
+        <button
+          className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+          type="submit"
+        >
+          Request Walk
+        </button>
       </div>
     </Form>
   );

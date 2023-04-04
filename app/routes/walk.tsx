@@ -1,11 +1,9 @@
 import { Outlet } from '@remix-run/react';
 import { useEffect, useRef, useState } from 'react';
-
-import { useGoogleMap, useWatchLocation } from '~/utils/mapUtils';
-
-import { Header } from '../components/Header';
-import { auth, signInWithGoogle } from '~/firebase';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { Header } from '~/components/Header';
+import { auth, signInWithGoogle } from '~/firebase';
+import { useGoogleMap, useWatchLocation } from '~/utils/mapUtils';
 
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);

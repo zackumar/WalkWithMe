@@ -1,13 +1,17 @@
-import { Form, useOutletContext, useSearchParams } from '@remix-run/react';
+import {
+  Form,
+  useNavigate,
+  useOutletContext,
+  useSearchParams,
+} from '@remix-run/react';
 import type { ChangeEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-
-import { auth } from '~/firebase';
+import { auth, hasRoute } from '~/firebase';
 import {
-  useWatchLocation,
-  getPredictions,
   getPlaceDetails,
+  getPredictions,
+  useWatchLocation,
 } from '~/utils/mapUtils';
 
 export default function Index() {
@@ -37,6 +41,19 @@ export default function Index() {
   const [places, setPlaces] = useState<
     google.maps.places.AutocompletePrediction[]
   >([]);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) return;
+    async function checkRoute() {
+      if (await hasRoute(user?.uid ?? '')) {
+        navigate('/walk/route');
+      }
+    }
+
+    checkRoute();
+  }, [user, navigate]);
 
   useEffect(() => {
     if (!map || !goo) return;

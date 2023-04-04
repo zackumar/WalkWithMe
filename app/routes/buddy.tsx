@@ -1,13 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  DIRECTION_OPTIONS,
-  getRoute,
-  secondsToEta,
-  useGoogleMap,
-  useWatchLocation,
-  getLocation,
-} from '~/utils/mapUtils';
-
+import { Header } from '../components/Header';
 import {
   auth,
   deleteRoute,
@@ -15,10 +6,16 @@ import {
   isRouteFinished,
   startRoute,
 } from '../firebase';
-
-import { Header } from '../components/Header';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { RouteCard } from '~/components/Route';
+import {
+  DIRECTION_OPTIONS,
+  getRoute,
+  secondsToEta,
+  useGoogleMap,
+  useWatchLocation,
+} from '~/utils/mapUtils';
 
 export default function BuddySystem() {
   const [user] = useAuthState(auth);
@@ -147,15 +144,24 @@ export default function BuddySystem() {
                 {routes && routes.length > 0 ? (
                   <ul>
                     {routes.map((route: any) => {
+                      const origin = new google.maps.LatLng(
+                        route.origin.latitude,
+                        route.origin.longitude
+                      );
+                      const destination = new google.maps.LatLng(
+                        route.destination.latitude,
+                        route.destination.longitude
+                      );
+
                       return (
                         <RouteCard
                           key={route.id}
                           route={route}
                           onViewRoute={() => {
-                            viewRoute(route.start, route.destination);
+                            viewRoute(origin, destination);
                           }}
                           onStartRoute={() => {
-                            viewRoute(route.start, route.destination);
+                            viewRoute(origin, destination);
                             startRoute(route.id, user?.uid!);
                             setRouteId(route.id);
                           }}
@@ -232,7 +238,7 @@ export default function BuddySystem() {
                         {
                           routes.filter((route: any) => {
                             return route.id === routeId;
-                          })[0].start
+                          })[0].originName
                         }
                       </p>
                       <p className="col-span-1 text-xs text-right font-semibold">
@@ -253,7 +259,7 @@ export default function BuddySystem() {
                         {
                           routes.filter((route: any) => {
                             return route.id === routeId;
-                          })[0].destination
+                          })[0].destinationName
                         }
                       </p>
                       <p className="col-span-1 text-xs text-right font-semibold">

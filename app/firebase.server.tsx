@@ -1,10 +1,8 @@
 //https://blog.cloudflare.com/api-at-the-edge-workers-and-firestore/
-
-import * as jose from 'jose';
-import { Geopoint, FirestoreObject } from './utils/jsonToFirestore';
-import { firestoreToJson } from './utils/jsonToFirestore';
-import { jsonToFirestore } from './utils/jsonToFirestore';
 import { getContext } from './context.server';
+import type { FirestoreObject, Geopoint } from './utils/jsonToFirestore';
+import { firestoreToJson, jsonToFirestore } from './utils/jsonToFirestore';
+import * as jose from 'jose';
 
 export type GCPClientCreds = {
   projectId: string;
@@ -75,6 +73,34 @@ export class FirestoreClient {
 
     return data.name.split('/').pop() as string;
   }
+
+  async runQuery(query: any) {
+    const headers = await this.authHeaders();
+    const resp = await fetch(`${this.url}:runQuery`, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(query),
+    });
+
+    const data = (await resp.json()) as any;
+    if (data.error) {
+      throw new Error(data.error.message);
+    }
+
+    console.log(data);
+
+    const docs = data.map((doc: any) => {
+      return {
+        id: doc.document.name.split('/').pop(),
+        data: firestoreToJson(doc.document.fields),
+      };
+    });
+
+    return docs;
+  }
 }
 
 export async function generateJWT(config: GCPClientCreds) {
@@ -123,6 +149,27 @@ export async function addRoute(
   destination: Geopoint,
   destinationName: string
 ) {
+  const user = await getFirestore().runQuery({
+    structuredQuery: {
+      from: [
+        {
+          collectionId: 'users',
+        },
+      ],
+      where: {
+        fieldFilter: {
+          field: {
+            fieldPath: 'uid',
+          },
+          op: 'EQUAL',
+          value: {
+            stringValue: userId,
+          },
+        },
+      },
+    },
+  });
+
   return await getFirestore().addDocument('routes', {
     userId,
     displayName,
@@ -131,5 +178,6 @@ export async function addRoute(
     destination,
     destinationName,
     timestamp: new Date(),
+    userPhoto: user[0]!.data!.photoURL,
   });
 }

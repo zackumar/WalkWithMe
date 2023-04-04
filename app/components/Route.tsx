@@ -30,7 +30,7 @@ export function RouteCard({
         <div className={route.alert ? 'col-span-3' : 'col-span-2'}>
           <h1 className="text-lg font-medium">{route.displayName}</h1>
           <p className="text-sm text-ellipsis overflow-hidden">
-            {route.alert ? `CURR LOC: ${route.currentLoc}` : route.start}
+            {route.alert ? `CURR LOC: ${route.currentLoc}` : route.originName}
           </p>
         </div>
 
