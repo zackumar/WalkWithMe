@@ -721,7 +721,7 @@ export default function Index() {
         </header>
         <section className="container mx-auto max-w-6xl p-5 flex flex-col md:grid md:grid-cols-2 gap-4">
           <div className="w-full flex flex-col justify-center space-y-4 drop-shadow-sm">
-            <h1 className="text-6xl font-bold">
+            <h1 className="text-4xl md:text-6xl font-bold">
               Building safer communities one step at a time
             </h1>
             <h2 className="text-2xl font-medium pb-8">Walk Safe, Feel Safe</h2>
