@@ -184,7 +184,7 @@ export default function Details() {
         </div>
         <div className="space-y-6">
           <h2 className="text-xl font-semibold">Your Trip</h2>
-          <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px]  before:bg-red-500 before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
+          <div className="grid grid-cols-6 flex-row w-full relative before:absolute before:top-5 before:h-7 before:w-1.5 before:left-[9px] before:bg-gradient-to-b before:from-[#818CF8] before:to-[#F9B8BB]">
             <svg
               viewBox="0 0 50 50"
               fill="none"
