@@ -711,9 +711,12 @@ export default function Index() {
                 </li>
               </ul>
             </nav> */}
-            <button className="px-4 py-1 border border-white rounded-full hover:text-[#818CF8] hover:bg-white">
-              Log In
-            </button>
+            <Link
+              to="/walk"
+              className="px-4 py-1 border border-white rounded-full hover:text-[#818CF8] hover:bg-white"
+            >
+              Start walking
+            </Link>
           </div>
         </header>
         <section className="container mx-auto max-w-6xl p-5 flex flex-col md:grid md:grid-cols-2 gap-4">
