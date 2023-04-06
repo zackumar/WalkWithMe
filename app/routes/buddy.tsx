@@ -5,7 +5,7 @@ import {
   getRoutes,
   isRouteFinished,
   startRoute,
-} from '../firebase';
+} from '../firebase/firebase';
 import { useEffect, useRef, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { RouteCard } from '~/components/Route';

@@ -8,7 +8,7 @@
     "dev": "npm-run-all build --parallel \"dev:*\"",
     "start": "cross-env NODE_ENV=production npm run wrangler",
     "typecheck": "tsc",
-    "wrangler": "wrangler pages dev ./public"
+    "wrangler": "wrangler pages dev ./public --kv=FIREBASE"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.15.1",

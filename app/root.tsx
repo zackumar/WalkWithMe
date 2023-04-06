@@ -1,8 +1,11 @@
+import { setContext } from './context.server';
+import { getUserId } from './session.server';
 import type {
   LinksFunction,
   LoaderFunction,
   MetaFunction,
 } from '@remix-run/cloudflare';
+import { json } from '@remix-run/cloudflare';
 import {
   Links,
   LiveReload,
@@ -11,9 +14,7 @@ import {
   Scripts,
   ScrollRestoration,
 } from '@remix-run/react';
-
 import stylesheet from '~/styles/tailwind.css';
-import { setContext } from './context.server';
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -25,9 +26,12 @@ export const meta: MetaFunction = () => ({
   viewport: 'width=device-width,initial-scale=1',
 });
 
-export const loader: LoaderFunction = async ({ context }) => {
+export const loader: LoaderFunction = async ({ request, context }) => {
   setContext(context);
-  return null;
+
+  return json({
+    user: await getUserId(request),
+  });
 };
 
 export default function App() {

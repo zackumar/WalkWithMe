@@ -2,7 +2,7 @@ import { Outlet } from '@remix-run/react';
 import { useEffect, useRef, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { Header } from '~/components/Header';
-import { auth, signInWithGoogle } from '~/firebase';
+import { auth, signInWithGoogle } from '~/firebase/firebase';
 import { useGoogleMap, useWatchLocation } from '~/utils/mapUtils';
 
 export default function Index() {

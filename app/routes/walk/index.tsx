@@ -7,7 +7,7 @@ import {
 import type { ChangeEventHandler } from 'react';
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, hasRoute } from '~/firebase';
+import { auth, hasRoute } from '~/firebase/firebase';
 import {
   getPlaceDetails,
   getPredictions,

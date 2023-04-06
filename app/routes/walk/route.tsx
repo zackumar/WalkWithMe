@@ -11,7 +11,7 @@ import {
   isRouteStarted,
   sendAlert,
   startWalking,
-} from '~/firebase';
+} from '~/firebase/firebase';
 import {
   useWatchLocation,
   getAddressFromLatLon,

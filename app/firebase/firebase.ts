@@ -3,6 +3,8 @@ import { initializeApp } from 'firebase/app';
 import {
   GoogleAuthProvider,
   getAuth,
+  inMemoryPersistence,
+  setPersistence,
   signInWithPopup,
   signOut,
 } from 'firebase/auth';
@@ -41,7 +43,9 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 // const analytics = getAnalytics(app);
 export const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+export const googleProvider = new GoogleAuthProvider();
+
+setPersistence(auth, inMemoryPersistence);
 
 export const signInWithGoogle = async () => {
   try {

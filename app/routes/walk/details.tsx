@@ -9,9 +9,9 @@ import {
 import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import invariant from 'tiny-invariant';
-import { auth, hasRoute } from '~/firebase';
-import { addRoute } from '~/firebase.server';
-import { Geopoint } from '~/utils/jsonToFirestore';
+import { auth, hasRoute } from '~/firebase/firebase';
+import { addRoute } from '~/firebase/firebase.server';
+import { Geopoint } from '~/firebase/jsonToFirestore';
 import { getRoute, secondsToEta } from '~/utils/mapUtils';
 
 export const action: ActionFunction = async ({ request }) => {
