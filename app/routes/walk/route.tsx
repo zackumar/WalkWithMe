@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate, useOutletContext } from 'react-router';
 import { useSearchParams } from 'react-router-dom';
+import AlertButton from '~/components/AlertButton';
 import {
   auth,
   endRoute,
@@ -76,9 +77,13 @@ export default function Route() {
       }
 
       setRouteId(route);
+      if (route.walking && !searchParams.get('started') && !alertMode) {
+        searchParams.set('started', 'true');
+        setSearchParams(searchParams);
+      }
     }
     getRoute();
-  }, [user, navigate]);
+  }, [user, navigate, searchParams, setSearchParams, alertMode]);
 
   useEffect(() => {
     if (!route) return;
@@ -107,8 +112,8 @@ export default function Route() {
 
       if (alertCountdown === 0) {
         setAlertMode(false);
-        searchParams.delete('started');
-        setSearchParams(searchParams);
+        // searchParams.delete('started');
+        // setSearchParams(searchParams);
         clearInterval(intervalId);
 
         if (!location?.coords.latitude || !location?.coords.longitude) return;
@@ -200,7 +205,7 @@ export default function Route() {
           </button>
         </div>
       ) : null}
-      {!alertMode && searchParams.has('started') ? (
+      {alertCountdown !== 0 && !alertMode && searchParams.has('started') ? (
         <div className="h-full flex flex-col items-center p-5 overflow-y-auto space-y-4">
           <div className="grow flex flex-col items-center space-y-4 w-full">
             <h1 className="text-3xl font-medium text-center">
@@ -209,14 +214,14 @@ export default function Route() {
             <h2 className="text-center">
               If you ever feel like you are in danger, alert the police here.
             </h2>
-            <button
-              className="rounded-full p-3 font-semibold hover:bg-red-500 bg-red-400 text-white w-full"
-              onClick={() => {
-                setAlertCountdown(5);
+
+            <AlertButton
+              onFinished={() => {
+                setAlertCountdown(0);
               }}
             >
-              Alert
-            </button>
+              Hold to Alert
+            </AlertButton>
           </div>
           <div className="space-y-8 w-full">
             <div className="space-y-6">

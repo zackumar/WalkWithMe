@@ -94,7 +94,7 @@ export async function getRouteFromUid(uid: string) {
   const docs = await getDocs(q);
   return docs.empty
     ? undefined
-    : { id: docs.docs[0].id, ...docs.docs[0].data() };
+    : ({ id: docs.docs[0].id, ...docs.docs[0].data() } as any);
 }
 
 export async function hasRoute(uid: string) {
