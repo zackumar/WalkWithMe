@@ -135,7 +135,11 @@ export default function Route() {
 
   useEffect(() => {
     if (alertCountdown === 0 && alertPlace && route) {
-      sendAlert(route.id, alertPlace.formatted_address!);
+      sendAlert(
+        route.id,
+        alertPlace.geometry.location,
+        alertPlace.formatted_address
+      );
     }
   }, [alertPlace, alertCountdown, route]);
 
