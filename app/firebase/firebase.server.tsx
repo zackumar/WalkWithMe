@@ -10,7 +10,6 @@ export function getAuth() {
   if (!firebaseAuth) {
     const context = getContext();
     const config = getServerConfig(context);
-    console.log(config);
     firebaseAuth = new FirebaseAuth(config);
   }
 
@@ -22,7 +21,6 @@ export function getFirestore() {
   if (!firestoreClient) {
     const context = getContext();
     const config = getServerConfig(context);
-    console.log(config);
     const url = `https://firestore.googleapis.com/v1beta1/projects/${config.projectId}/databases/(default)/documents`;
     firestoreClient = new FirestoreClient(config, url);
   }
