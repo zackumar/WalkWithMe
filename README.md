@@ -1,6 +1,6 @@
 # WalkWithMe
 
-WalkWithMe is a tool allowing users to request a buddy to walk them to their destination for use by students or other members of the community
+WalkWithMe is a tool allowing users to request a buddy to walk them to their destination for use by students or other members of the community. Find at [wwm.gdscutsa.com](https://wwm.gdscutsa.com)
 
 ## Installation
 
@@ -67,6 +67,19 @@ export const getServerConfig = () => {
   return config;
 };
 ```
+
+## Demo
+
+### User Side
+- From the home page (localhost:8788): 
+  - Log in and press request a buddy. You can add your origin and destination and request a buddy.
+  - You will need to wait until a buddy accepts your request from the buddy system (instructions below). 
+  - Once a buddy has accepted the walk, you can notify the system once they arrive and go on your way.
+  - In the route page, you can alert the buddy system, or you can finish your route when you are done.
+  
+### Buddy System
+- From localhost:8788/buddy, you can look at the buddy system. From there you can accept/view routes.
+- If you have another window open with localhost:8788/buddy it will show you any alerts that pop up.
 
 ## Development
 
