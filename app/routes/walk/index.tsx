@@ -108,7 +108,7 @@ export default function Index() {
 
       <div className="space-y-5 pb-5">
         <h1 className="font-bold text-2xl text-slate-800">
-          Howdy, {user.displayName}
+          Howdy, {user.name}
         </h1>
         <div>
           <div className="relative">
@@ -217,8 +217,11 @@ export default function Index() {
       </div>
       <div className="pt-4 border-t border-t-slate-300 mt-auto pb-5">
         <button
-          className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+          className="rounded-full p-3 font-semibold hover:bg-indigo-600 bg-indigo-500 text-white w-full disabled:bg-indigo-300 disabled:cursor-not-allowed"
           type="submit"
+          disabled={
+            !(searchParams.get('origin') && searchParams.get('destination'))
+          }
         >
           Details
         </button>

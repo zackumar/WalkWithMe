@@ -56,15 +56,15 @@ export const action: ActionFunction = async ({ request }) => {
 export const loader: LoaderFunction = async ({ request }) => {
   const searchParams = new URL(request.url).searchParams;
 
-  if (!searchParams.has('origin') && !searchParams.has('destination')) {
+  if (!searchParams.get('origin') && !searchParams.get('destination')) {
     return redirect('/walk');
-  } else if (!searchParams.has('origin') && searchParams.has('destination')) {
+  } else if (!searchParams.get('origin') && searchParams.get('destination')) {
     return redirect('/walk?destination=' + searchParams.get('destination'));
-  } else if (searchParams.has('origin') && !searchParams.has('destination')) {
+  } else if (searchParams.get('origin') && !searchParams.get('destination')) {
     return redirect('/walk?origin=' + searchParams.get('origin'));
   }
 
-  if (!searchParams.has('originName') || !searchParams.has('destinationName')) {
+  if (!searchParams.get('originName') || !searchParams.get('destinationName')) {
     return redirect('/walk');
   }
 
@@ -209,7 +209,7 @@ export default function Details() {
       </div>
       <div className="pt-4 border-t border-t-slate-300 mt-auto pb-5">
         <button
-          className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+          className="rounded-full p-3 font-semibold hover:bg-indigo-600 bg-indigo-500 text-white w-full"
           type="submit"
         >
           Request Walk
