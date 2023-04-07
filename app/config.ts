@@ -1,4 +1,5 @@
 import { getContext } from './context.server';
+import { AppLoadContext } from '@remix-run/cloudflare';
 
 export const API_KEY = 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U';
 
@@ -12,16 +13,15 @@ export const firebaseConfig = {
   measurementId: 'G-T085NK33L2',
 };
 
-export const getServerConfig = () => {
+export const getServerConfig = (context: AppLoadContext) => {
   //Cloudflare Workers uses context rather than process.env like node
-  const context = getContext() as any;
   const config = {
     apiKey: API_KEY,
     projectId: context.PROJECT_ID as string,
     privateKeyId: context.PRIVATE_KEY_ID as string,
     privateKey: context.PRIVATE_KEY as string,
     clientEmail: context.CLIENT_EMAIL as string,
-    cache: context.FIREBASE,
+    cache: context.FIREBASE as KVNamespace,
   };
 
   return config;
