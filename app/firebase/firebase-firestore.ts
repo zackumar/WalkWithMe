@@ -88,7 +88,7 @@ export class FirestoreClient {
       throw new Error(data.error.message);
     }
 
-    console.log(data);
+    if (!data[0].document) return [];
 
     const docs = data.map((doc: any) => {
       return {

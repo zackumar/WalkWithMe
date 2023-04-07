@@ -1,5 +1,6 @@
 //https://blog.cloudflare.com/api-at-the-edge-workers-and-firestore/
-import { FirebaseAuth, FirebaseConfig } from './firebase-auth';
+import type { FirebaseConfig } from './firebase-auth';
+import { FirebaseAuth } from './firebase-auth';
 import type { GCPClientCreds } from './firebase-firestore';
 import { FirestoreClient } from './firebase-firestore';
 import type { Geopoint } from './jsonToFirestore';
@@ -9,7 +10,6 @@ let firebaseAuth: FirebaseAuth;
 export function getAuth() {
   if (!firebaseAuth) {
     const context = getContext() as any;
-    console.log(context);
     const config: FirebaseConfig = {
       apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
       projectId: context.PROJECT_ID as string,
@@ -28,7 +28,6 @@ let firestoreClient: FirestoreClient;
 export function getFirestore() {
   if (!firestoreClient) {
     const context = getContext();
-    console.log(context);
     const config: GCPClientCreds = {
       projectId: context.PROJECT_ID as string,
       privateKeyId: context.PRIVATE_KEY_ID as string,
@@ -39,6 +38,36 @@ export function getFirestore() {
     firestoreClient = new FirestoreClient(config, url);
   }
   return firestoreClient;
+}
+
+export async function hasRoute(userId: string) {
+  const routes = await getRouteFromId(userId);
+  return routes;
+}
+
+export async function getRouteFromId(userId: string) {
+  const routes = await getFirestore().runQuery({
+    structuredQuery: {
+      from: [
+        {
+          collectionId: 'routes',
+        },
+      ],
+      where: {
+        fieldFilter: {
+          field: {
+            fieldPath: 'userId',
+          },
+          op: 'EQUAL',
+          value: {
+            stringValue: userId,
+          },
+        },
+      },
+    },
+  });
+
+  return routes[0] ?? undefined;
 }
 
 export async function addRoute(

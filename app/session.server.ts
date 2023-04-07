@@ -3,7 +3,6 @@ import { createCookie, redirect } from '@remix-run/cloudflare';
 
 export const session = createCookie('session', {
   secrets: ['test'],
-  expires: new Date(Date.now() + 60 * 60 * 24 * 14 * 1000),
   path: '/',
 });
 
@@ -26,7 +25,6 @@ export async function requireUserId(
 }
 
 export async function logout(request: Request) {
-  console.log('logout');
   return redirect('/', {
     headers: {
       'Set-Cookie': await session.serialize('', {

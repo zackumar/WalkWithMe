@@ -1,6 +1,6 @@
 import type { ActionFunction } from '@remix-run/cloudflare';
 import { redirect } from '@remix-run/cloudflare';
-import { Link, useFetcher } from '@remix-run/react';
+import { Link, useFetcher, useSearchParams } from '@remix-run/react';
 import { signInWithPopup } from 'firebase/auth';
 import invariant from 'tiny-invariant';
 import { auth, googleProvider } from '~/firebase/firebase';
@@ -9,7 +9,8 @@ import { session } from '~/session.server';
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData();
-  const idToken = form.get('idToken')?.toString();
+  const idToken = form.get('idToken') as string;
+  const redirectTo = form.get('redirectTo') as string;
 
   invariant(idToken, 'idToken is required');
 
@@ -18,21 +19,25 @@ export const action: ActionFunction = async ({ request }) => {
 
   const jwt = await getAuth().createSessionCookie(idToken);
 
-  return redirect('/', {
+  return redirect(redirectTo, {
     headers: {
-      'Set-Cookie': await session.serialize(jwt),
+      'Set-Cookie': await session.serialize(jwt, {
+        expires: new Date(Date.now() + 60 * 60 * 24 * 14 * 1000),
+      }),
     },
   });
 };
 
 export default function Login() {
   const fetcher = useFetcher();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirectTo') || '/';
 
   const signInWithGoogle = async () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
       fetcher.submit(
-        { idToken: await res.user.getIdToken() },
+        { idToken: await res.user.getIdToken(), redirectTo },
         { method: 'post' }
       );
     } catch (err) {

@@ -1,14 +1,13 @@
 import { Header } from '../components/Header';
 import {
-  auth,
   deleteRoute,
   getRoutes,
   isRouteFinished,
   startRoute,
 } from '../firebase/firebase';
 import { useEffect, useRef, useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { RouteCard } from '~/components/Route';
+import { useOptionalUser } from '~/utils/auth';
 import {
   DIRECTION_OPTIONS,
   getRoute,
@@ -18,7 +17,7 @@ import {
 } from '~/utils/mapUtils';
 
 export default function BuddySystem() {
-  const [user] = useAuthState(auth);
+  const user = useOptionalUser();
 
   const mapRef = useRef<HTMLDivElement>(null);
   const [goo, map] = useGoogleMap(mapRef);
@@ -162,7 +161,7 @@ export default function BuddySystem() {
                           }}
                           onStartRoute={() => {
                             viewRoute(origin, destination);
-                            startRoute(route.id, user?.uid!);
+                            startRoute(route.id, user?.user_id!);
                             setRouteId(route.id);
                           }}
                           onDeleteRoute={() => {

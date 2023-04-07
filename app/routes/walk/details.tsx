@@ -7,25 +7,23 @@ import {
   useSearchParams,
 } from '@remix-run/react';
 import { useEffect, useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import invariant from 'tiny-invariant';
-import { auth, hasRoute } from '~/firebase/firebase';
 import { addRoute } from '~/firebase/firebase.server';
 import { Geopoint } from '~/firebase/jsonToFirestore';
+import { requireUserId } from '~/session.server';
+import { useUser } from '~/utils/auth';
 import { getRoute, secondsToEta } from '~/utils/mapUtils';
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
-  const uid = formData.get('uid') as string;
-  const displayName = formData.get('displayName') as string;
   const origin = formData.get('origin') as string;
   const destination = formData.get('destination') as string;
   const originName = formData.get('originName') as string;
   const destinationName = formData.get('destinationName') as string;
   const eta = formData.get('eta') as unknown as number;
 
-  invariant(uid, 'Uid is required');
-  invariant(displayName, 'Display name is required');
+  const user = (await requireUserId(request)) as any;
+
   invariant(origin, 'Origin is required');
   invariant(destination, 'Destination is required');
   invariant(originName, 'Origin name is required');
@@ -44,8 +42,8 @@ export const action: ActionFunction = async ({ request }) => {
   );
 
   await addRoute(
-    uid,
-    displayName,
+    user.user_id,
+    user.name,
     originGeopoint,
     originName,
     destinationGeopoint,
@@ -83,20 +81,9 @@ export default function Details() {
   }>();
   const navigate = useNavigate();
 
-  const [user] = useAuthState(auth);
+  const user = useUser();
 
   const [eta, setEta] = useState<number>();
-
-  useEffect(() => {
-    if (!user) return;
-    async function checkRoute() {
-      if (await hasRoute(user?.uid ?? '')) {
-        navigate('/walk/route');
-      }
-    }
-
-    checkRoute();
-  }, [user, navigate]);
 
   useEffect(() => {
     async function getEta() {
@@ -124,13 +111,9 @@ export default function Details() {
     getEta();
   }, [goo, map, searchParams, directionsRenderer]);
 
-  if (!user) return null;
-
   return (
     <Form className="flex flex-col h-full overflow-y-auto" method="post">
       <input hidden name="eta" defaultValue={eta} />
-      <input hidden name="uid" defaultValue={user.uid} />
-      <input hidden name="displayName" defaultValue={user.displayName ?? ''} />
       <input
         hidden
         name="origin"
@@ -144,7 +127,7 @@ export default function Details() {
 
       <div className="space-y-5 pb-5">
         <h1 className="font-bold text-2xl text-slate-800">
-          Howdy, {user.displayName}
+          Howdy, {user.name}
         </h1>
         <div>
           <div className="relative">

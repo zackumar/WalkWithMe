@@ -104,6 +104,7 @@ export async function getRouteFromUid(uid: string) {
 export async function hasRoute(uid: string) {
   const q = query(collection(db, 'routes'), where('userId', '==', uid));
   const docs = await getDocs(q);
+
   return docs.docs.length > 0;
 }
 

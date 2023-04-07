@@ -241,7 +241,6 @@ export class FirebaseAuth {
 
     //Get certificate from JWT key id
     const certificate = data[header.kid!];
-    console.log('CERT', certificate);
     const publicKey = await importX509(certificate, 'RS256');
 
     //Verify the sessionCookie with the publicKey

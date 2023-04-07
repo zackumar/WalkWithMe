@@ -3,7 +3,6 @@ import { useOptionalUser } from '~/utils/auth';
 
 export default function Index() {
   const user = useOptionalUser();
-  console.log(user);
 
   return (
     <main className="relative min-h-screen space-y-10">
@@ -723,12 +722,14 @@ export default function Index() {
                 Log In
               </Link>
             ) : (
-              <Link
-                to="/logout"
-                className="px-4 py-1 border border-white rounded-full hover:text-[#818CF8] hover:bg-white"
-              >
-                Log Out
-              </Link>
+              <form action="/logout" method="post">
+                <button
+                  className="px-4 py-1 border border-white rounded-full hover:text-[#818CF8] hover:bg-white"
+                  type="submit"
+                >
+                  Log Out
+                </button>
+              </form>
             )}
           </div>
         </header>

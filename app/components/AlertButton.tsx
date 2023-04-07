@@ -21,7 +21,6 @@ export default function AlertButton({
   };
 
   const onOut = () => {
-    console.log('clear');
     if (time) {
       clearTimeout(time);
     }

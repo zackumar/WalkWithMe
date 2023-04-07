@@ -1,15 +1,32 @@
-import { Outlet } from '@remix-run/react';
+import type { LoaderFunction } from '@remix-run/cloudflare';
+import { redirect } from '@remix-run/cloudflare';
+import { Link, Outlet } from '@remix-run/react';
 import { useEffect, useRef, useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { Header } from '~/components/Header';
-import { auth, signInWithGoogle } from '~/firebase/firebase';
+import { hasRoute } from '~/firebase/firebase.server';
+import { getUserId } from '~/session.server';
+import { useOptionalUser } from '~/utils/auth';
 import { useGoogleMap, useWatchLocation } from '~/utils/mapUtils';
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const pathname = new URL(request.url).pathname;
+  const user = (await getUserId(request)) as any;
+  if (
+    pathname !== '/walk/route' &&
+    user &&
+    (await hasRoute(user?.user_id ?? ''))
+  ) {
+    return redirect('/walk/route');
+  }
+
+  return null;
+};
 
 export default function Index() {
   const mapRef = useRef<HTMLDivElement>(null);
   const [goo, map] = useGoogleMap(mapRef);
 
-  const [user] = useAuthState(auth);
+  const user = useOptionalUser();
 
   const [userLocation, available, granted] = useWatchLocation();
 
@@ -89,12 +106,12 @@ export default function Index() {
                   Howdy! Please log in to get started.
                 </h1>
               </div>
-              <button
-                className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-                onClick={signInWithGoogle}
+              <Link
+                className="text-center rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                to="/login?redirectTo=/walk"
               >
                 Log in
-              </button>
+              </Link>
             </div>
           ) : null}
           {user && (granted || userLocation) ? (
