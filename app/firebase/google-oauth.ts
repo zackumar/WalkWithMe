@@ -20,7 +20,10 @@ export async function getAuthToken(
   privateKey: string,
   scope: string
 ): Promise<string> {
-  const ecPrivateKey = await importPKCS8(privateKey, 'RS256');
+  const ecPrivateKey = await importPKCS8(
+    privateKey.replace(/\\n/g, '\n'),
+    'RS256'
+  );
 
   const jwt = await new SignJWT({ scope: scope })
     .setProtectedHeader({ alg: 'RS256' })
