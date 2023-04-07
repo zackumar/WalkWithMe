@@ -1,9 +1,10 @@
 import { Loader } from '@googlemaps/js-api-loader';
 import type { RefObject } from 'react';
 import { useEffect, useState } from 'react';
+import { API_KEY } from '~/config';
 
 const loader = new Loader({
-  apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
+  apiKey: API_KEY,
   version: 'weekly',
   libraries: ['places'],
 });
@@ -133,7 +134,7 @@ export async function getPredictions(
         input: locQuery,
         sessionToken: sessionToken,
         location: location,
-        radius: 10000,
+        radius: location ? 10000 : undefined,
       },
       (predictions, status) => {
         if (status === goo.maps.places.PlacesServiceStatus.OK) {

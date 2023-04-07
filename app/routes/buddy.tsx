@@ -1,8 +1,8 @@
 import { Header } from '../components/Header';
 import {
   deleteRoute,
+  doesRouteExist,
   getRoutes,
-  isRouteFinished,
   startRoute,
 } from '../firebase/firebase';
 import { useEffect, useRef, useState } from 'react';
@@ -74,10 +74,9 @@ export default function BuddySystem() {
           setRoutes(routes);
         });
       } else {
-        isRouteFinished(routeId).then((finished) => {
-          if (finished) {
+        doesRouteExist(routeId).then((exists) => {
+          if (!exists) {
             directionsRenderer?.setMap(null);
-            deleteRoute(routeId);
             setRouteId('');
           }
         });

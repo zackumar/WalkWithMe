@@ -51,7 +51,7 @@ export default function Index() {
     setPickupValue(e.target.value);
 
     if (!goo || !map) return;
-    if (!autocompleteService || !sessionToken || !userLocation) return;
+    if (!autocompleteService || !sessionToken) return;
 
     setPlaces(
       await getPredictions(
@@ -60,10 +60,12 @@ export default function Index() {
         autocompleteService,
         e.target.value,
         sessionToken,
-        new goo.maps.LatLng(
-          userLocation.coords.latitude,
-          userLocation.coords.longitude
-        )
+        userLocation
+          ? new goo.maps.LatLng(
+              userLocation.coords.latitude,
+              userLocation.coords.longitude
+            )
+          : undefined
       )
     );
   };
@@ -72,7 +74,7 @@ export default function Index() {
     setDropoffValue(e.target.value);
 
     if (!goo || !map) return;
-    if (!autocompleteService || !sessionToken || !userLocation) return;
+    if (!autocompleteService || !sessionToken) return;
 
     setPlaces(
       await getPredictions(
@@ -81,10 +83,12 @@ export default function Index() {
         autocompleteService,
         e.target.value,
         sessionToken,
-        new goo.maps.LatLng(
-          userLocation.coords.latitude,
-          userLocation.coords.longitude
-        )
+        userLocation
+          ? new goo.maps.LatLng(
+              userLocation.coords.latitude,
+              userLocation.coords.longitude
+            )
+          : undefined
       )
     );
   };

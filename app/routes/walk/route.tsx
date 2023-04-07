@@ -6,8 +6,8 @@ import { useNavigate, useOutletContext } from 'react-router';
 import { useSearchParams } from 'react-router-dom';
 import AlertButton from '~/components/AlertButton';
 import {
-  endRoute,
-  isRouteFinished,
+  deleteRoute,
+  doesRouteExist,
   isRouteStarted,
   sendAlert,
   startWalking,
@@ -93,8 +93,8 @@ export default function Route() {
         setBuddyName(isStarted.buddyName);
         setPhotoUrl(isStarted.buddyPhoto);
       });
-      isRouteFinished(route.id).then((finished) => {
-        if (finished) clearInterval(interval);
+      doesRouteExist(route.id).then((exists) => {
+        if (!exists) clearInterval(interval);
       });
     }, 2000);
 
@@ -140,7 +140,7 @@ export default function Route() {
   }, [alertPlace, alertCountdown, route]);
 
   const onArrive = () => {
-    endRoute(route.id);
+    deleteRoute(route.id);
     directionsRenderer?.setMap(null);
     navigate('/walk');
   };
