@@ -13,13 +13,14 @@ export const firebaseConfig = {
 };
 
 export const getServerConfig = () => {
+  //Cloudflare Workers uses context rather than process.env like node
   const context = getContext() as any;
   const config = {
     apiKey: API_KEY,
-    projectId: context.PROJECT_ID as string,
-    privateKeyId: context.PRIVATE_KEY_ID as string,
-    privateKey: context.PRIVATE_KEY as string,
-    clientEmail: context.CLIENT_EMAIL as string,
+    projectId: (context.PROJECT_ID as string) ?? 'YOUR_PROJECT_ID',
+    privateKeyId: (context.PRIVATE_KEY_ID as string) ?? 'YOUR_PRIVATE_KEY_ID',
+    privateKey: (context.PRIVATE_KEY as string) ?? 'YOU_PRIVATE_KEY',
+    clientEmail: (context.CLIENT_EMAIL as string) ?? 'YOUR_CLIENT_EMAIL',
     cache: context.FIREBASE,
   };
 
