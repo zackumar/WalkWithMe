@@ -1,12 +1,12 @@
 import HamburgerSVG from './HamburgerSVG';
-import { Link } from '@remix-run/react';
-import React, { useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, logout, signInWithGoogle } from '~/firebase';
+import { Link, useLocation } from '@remix-run/react';
+import { useState } from 'react';
+import { useOptionalUser } from '~/utils/auth';
 
 export function Header() {
-  const [user] = useAuthState(auth);
+  const user = useOptionalUser();
   const [isMenuShown, setIsMenuShown] = useState(false);
+  const { pathname } = useLocation();
 
   return (
     <header className="fixed inset-x-0 top-0 z-40">
@@ -34,23 +34,25 @@ export function Header() {
         </div>
         <nav className="p-5">
           {!user ? (
-            <button
+            <Link
               className="rounded-md px-3 p-1 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-              onClick={signInWithGoogle}
+              to={`/login?redirect=${pathname}`}
             >
               Log In
-            </button>
+            </Link>
           ) : (
             <div className="space-y-5">
               <h2 className="text-md font-semibold whitespace-nowrap">
-                Hi, {user.displayName}
+                Hi, {user.name}
               </h2>
-              <button
-                className="rounded-md px-3 p-1 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-                onClick={logout}
-              >
-                Log Out
-              </button>
+              <form action="/logout" method="post">
+                <button
+                  className="rounded-md px-3 p-1 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                  type="submit"
+                >
+                  Log Out
+                </button>
+              </form>
             </div>
           )}
         </nav>
@@ -764,23 +766,25 @@ export function Header() {
 
         <nav className="hidden md:flex">
           {!user ? (
-            <button
+            <Link
               className="rounded-md px-3 p-1 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-              onClick={signInWithGoogle}
+              to={`/login?redirectTo=${pathname}`}
             >
               Log In
-            </button>
+            </Link>
           ) : (
             <div className="flex flex-row space-x-4 items-center">
               <h2 className="text-md font-semibold whitespace-nowrap">
-                Hi, {user.displayName}
+                Hi, {user.name}
               </h2>
-              <button
-                className="rounded-md px-3 p-1 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
-                onClick={logout}
-              >
-                Log Out
-              </button>
+              <form action="/logout" method="post">
+                <button
+                  className="rounded-md px-3 p-1 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+                  type="submit"
+                >
+                  Log Out
+                </button>
+              </form>
             </div>
           )}
         </nav>

@@ -1,11 +1,52 @@
-import { Link } from '@remix-run/react';
-import { useOptionalUser } from '~/utils/auth';
+import type { ActionFunction } from '@remix-run/cloudflare';
+import { redirect } from '@remix-run/cloudflare';
+import { Link, useFetcher, useSearchParams } from '@remix-run/react';
+import { signInWithPopup } from 'firebase/auth';
+import invariant from 'tiny-invariant';
+import { auth, googleProvider } from '~/firebase/firebase';
+import { getAuth } from '~/firebase/firebase.server';
+import { session } from '~/session.server';
 
-export default function Index() {
-  const user = useOptionalUser();
+export const action: ActionFunction = async ({ request }) => {
+  const form = await request.formData();
+  const idToken = form.get('idToken') as string;
+  const redirectTo = form.get('redirectTo') as string;
+
+  invariant(idToken, 'idToken is required');
+
+  // Verify the idToken is actually valid
+  await getAuth().verifyIdToken(idToken);
+
+  const jwt = await getAuth().createSessionCookie(idToken);
+
+  return redirect(redirectTo, {
+    headers: {
+      'Set-Cookie': await session.serialize(jwt, {
+        expires: new Date(Date.now() + 60 * 60 * 24 * 14 * 1000),
+      }),
+    },
+  });
+};
+
+export default function Login() {
+  const fetcher = useFetcher();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirectTo') || '/';
+
+  const signInWithGoogle = async () => {
+    try {
+      const res = await signInWithPopup(auth, googleProvider);
+      fetcher.submit(
+        { idToken: await res.user.getIdToken(), redirectTo },
+        { method: 'post' }
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
-    <main className="relative min-h-screen space-y-10">
+    <main className="relative min-h-screen space-y-10 flex flex-col">
       <div className="bg-gradient-to-br from-[#818CF8] from-50% to-[#F9B8BB] text-white">
         <header className="">
           <div className="container mx-auto max-w-6xl p-5 flex flex-row justify-between items-center gap-4">
@@ -705,92 +746,33 @@ export default function Index() {
               </svg>
               <p className="text-lg font-semibold text-white">WalkWithMe</p>
             </Link>
-            {/* <nav className="hidden justify-center space-x-10 md:flex md:items-end">
-              <ul className="flex flex-row items-center justify-center space-x-10">
-                <li>
-                  <NavLink className="text-lg" to={'/walk'} end>
-                    Request a Walk
-                  </NavLink>
-                </li>
-              </ul>
-            </nav> */}
-            {!user ? (
-              <Link
-                to="/login"
-                className="px-4 py-1 border border-white rounded-full hover:text-[#818CF8] hover:bg-white"
-              >
-                Log In
-              </Link>
-            ) : (
-              <form action="/logout" method="post">
-                <button
-                  className="px-4 py-1 border border-white rounded-full hover:text-[#818CF8] hover:bg-white"
-                  type="submit"
-                >
-                  Log Out
-                </button>
-              </form>
-            )}
           </div>
         </header>
-        <section className="container mx-auto max-w-6xl p-5 flex flex-col md:grid md:grid-cols-2 gap-4">
-          <div className="w-full flex flex-col justify-center space-y-4 drop-shadow-sm">
-            <h1 className="text-4xl md:text-6xl font-bold">
-              Building safer communities one step at a time
-            </h1>
-            <h2 className="text-2xl font-medium pb-8">Walk Safe, Feel Safe</h2>
-
-            <div>
-              <Link
-                to="/walk"
-                className="px-4 py-1 border border-white rounded-full hover:text-[#818CF8] hover:bg-white"
-              >
-                Request a Buddy
-              </Link>
-            </div>
-          </div>
-
-          <div className="w-full h-full rounded-3xl p-5 flex flex-row justify-center items-center space-x-2">
-            <img
-              className="w-1/2"
-              src="/assets/images/details.webp"
-              alt="details demo on phone"
-            ></img>
-          </div>
-        </section>
       </div>
 
-      <section className="container mx-auto max-w-6xl p-5 flex flex-col md:grid md:grid-cols-2 gap-4">
-        <div className="w-full h-full rounded-3xl p-5 flex flex-row justify-center items-center space-x-2">
-          <img
-            className="w-1/2 drop-shadow-md"
-            src="/assets/images/trip.webp"
-            alt="trip demo on phone"
-          ></img>
-        </div>
-        <div className="w-full space-y-4">
-          <h1 className="text-5xl font-bold">Your safety comes first</h1>
-          <h2 className="text-2xl font-medium pb-4">
-            Everything in the palm of your hands
-          </h2>
-          <p>
-            WalkWithMe's "Buddy System" is designed to be operated by trusted
-            members of the community, such as campus police or student council.
-          </p>
-          <p>
-            If you feel unsafe at any time, you can immediately alert the Buddy
-            System, automatically notifying it of your location.
-          </p>
+      <section className="container mx-auto max-w-sm p-5 flex flex-col justify-center items-center flex-grow space-y-5">
+        <h1 className="text-3xl font-medium w-full text-left">
+          Let's get started
+        </h1>
+        <div className="space-y-2 w-full">
+          <button
+            className="rounded-sm border border-gray-400 w-full h-14 flex flex-row items-center justify-center space-x-2 hover:bg-gray-100"
+            onClick={signInWithGoogle}
+          >
+            <img alt="google" src="/assets/images/google.svg"></img>
+            <span>Sign in with Google</span>
+          </button>
         </div>
       </section>
-      <footer className="bg-slate-50 w-full">
+
+      <footer className="bg-slate-50 w-full mt-auto">
         <div className="container mx-auto h-full max-w-6xl space-y-10 py-12 px-8 md:px-4">
           <div className="flex flex-col items-center justify-center gap-10 md:grid md:grid-cols-3 text-gray-500">
             <Link className="h-full space-x-2" to="/">
               <p className="text-lg font-semibold">WalkWithMe</p>
             </Link>
             <div className="h-full">
-              <h1 className="pb-2 text-base text-gray-500">Quick Links</h1>
+              <h1 className="pb-2 text-base text-gray-400">Quick Links</h1>
               <ul>
                 <li className="text-center md:text-left">
                   <a

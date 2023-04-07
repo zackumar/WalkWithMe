@@ -1,7 +1,5 @@
-//https://blog.cloudflare.com/api-at-the-edge-workers-and-firestore/
-import { getContext } from './context.server';
-import type { FirestoreObject, Geopoint } from './utils/jsonToFirestore';
-import { firestoreToJson, jsonToFirestore } from './utils/jsonToFirestore';
+import type { FirestoreObject } from './jsonToFirestore';
+import { firestoreToJson, jsonToFirestore } from './jsonToFirestore';
 import * as jose from 'jose';
 
 export type GCPClientCreds = {
@@ -90,7 +88,7 @@ export class FirestoreClient {
       throw new Error(data.error.message);
     }
 
-    console.log(data);
+    if (!data[0].document) return [];
 
     const docs = data.map((doc: any) => {
       return {
@@ -123,61 +121,4 @@ export async function generateJWT(config: GCPClientCreds) {
     .sign(privateKey);
 
   return [jwt, expiresAt] as const;
-}
-
-let client: FirestoreClient;
-export function getFirestore() {
-  if (!client) {
-    const context = getContext();
-    const config: GCPClientCreds = {
-      projectId: context.PROJECT_ID as string,
-      privateKeyId: context.PRIVATE_KEY_ID as string,
-      privateKey: context.PRIVATE_KEY as string,
-      clientEmail: context.CLIENT_EMAIL as string,
-    };
-    const url = `https://firestore.googleapis.com/v1beta1/projects/${config.projectId}/databases/(default)/documents`;
-    client = new FirestoreClient(config, url);
-  }
-  return client;
-}
-
-export async function addRoute(
-  userId: string,
-  displayName: string,
-  origin: Geopoint,
-  originName: string,
-  destination: Geopoint,
-  destinationName: string
-) {
-  const user = await getFirestore().runQuery({
-    structuredQuery: {
-      from: [
-        {
-          collectionId: 'users',
-        },
-      ],
-      where: {
-        fieldFilter: {
-          field: {
-            fieldPath: 'uid',
-          },
-          op: 'EQUAL',
-          value: {
-            stringValue: userId,
-          },
-        },
-      },
-    },
-  });
-
-  return await getFirestore().addDocument('routes', {
-    userId,
-    displayName,
-    origin,
-    originName,
-    destination,
-    destinationName,
-    timestamp: new Date(),
-    userPhoto: user[0]!.data!.photoURL,
-  });
 }

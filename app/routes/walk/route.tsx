@@ -1,33 +1,52 @@
+import type { LoaderFunction } from '@remix-run/cloudflare';
+import { json, redirect } from '@remix-run/cloudflare';
+import { useLoaderData } from '@remix-run/react';
 import { useEffect, useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNavigate, useOutletContext } from 'react-router';
 import { useSearchParams } from 'react-router-dom';
 import AlertButton from '~/components/AlertButton';
 import {
-  auth,
   endRoute,
-  getRouteFromUid,
   isRouteFinished,
   isRouteStarted,
   sendAlert,
   startWalking,
-} from '~/firebase';
+} from '~/firebase/firebase';
+import { getRouteFromId } from '~/firebase/firebase.server';
+import { requireUserId } from '~/session.server';
 import {
   useWatchLocation,
   getAddressFromLatLon,
   getRoute,
 } from '~/utils/mapUtils';
 
+export const loader: LoaderFunction = async ({ request }) => {
+  const user = (await requireUserId(request)) as any;
+  const route = await getRouteFromId(user.user_id);
+  if (!route) {
+    return redirect('/walk');
+  }
+
+  if (route.walking) {
+    return redirect('/walk/route?started=true');
+  }
+
+  if (route.finished) {
+    return redirect('/walk/');
+  }
+
+  return json({ route: { id: route.id, ...route.data } });
+};
+
 export default function Route() {
+  const { route } = useLoaderData<{ route: any }>();
+
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [location] = useWatchLocation();
 
-  const [user] = useAuthState(auth);
-  const [route, setRouteId] = useState<any>(null);
-
-  const [buddyName, setBuddyName] = useState('');
-  const [photoUrl, setPhotoUrl] = useState('');
+  const [buddyName, setBuddyName] = useState(route.buddyName || '');
+  const [photoUrl, setPhotoUrl] = useState(route.buddyPhoto || '');
 
   const [alertMode, setAlertMode] = useState(false);
   const [alertCountdown, setAlertCountdown] = useState(-1);
@@ -65,25 +84,6 @@ export default function Route() {
 
     getEta();
   }, [goo, map, route, directionsRenderer]);
-
-  useEffect(() => {
-    async function getRoute() {
-      if (!user) return;
-
-      const route = await getRouteFromUid(user.uid);
-      if (!route) {
-        navigate('/walk');
-        return;
-      }
-
-      setRouteId(route);
-      if (route.walking && !searchParams.get('started') && !alertMode) {
-        searchParams.set('started', 'true');
-        setSearchParams(searchParams);
-      }
-    }
-    getRoute();
-  }, [user, navigate, searchParams, setSearchParams, alertMode]);
 
   useEffect(() => {
     if (!route) return;
@@ -140,10 +140,8 @@ export default function Route() {
   }, [alertPlace, alertCountdown, route]);
 
   const onArrive = () => {
-    console.log(route.id);
     endRoute(route.id);
     directionsRenderer?.setMap(null);
-
     navigate('/walk');
   };
 
@@ -152,18 +150,6 @@ export default function Route() {
     setAlertPlace(undefined);
     setAlertCountdown(-1);
   };
-
-  if (!route) {
-    return (
-      <div className="w-full h-full flex flex-col items-center p-5 overflow-y-auto space-y-4">
-        <div className="grow flex flex-col items-center justify-center space-y-4">
-          <h1 className="text-3xl font-medium text-center">
-            Loading routes...
-          </h1>
-        </div>
-      </div>
-    );
-  }
 
   if (!buddyName || !photoUrl) {
     return (

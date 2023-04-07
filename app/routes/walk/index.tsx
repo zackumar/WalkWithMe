@@ -1,13 +1,7 @@
-import {
-  Form,
-  useNavigate,
-  useOutletContext,
-  useSearchParams,
-} from '@remix-run/react';
+import { Form, useOutletContext, useSearchParams } from '@remix-run/react';
 import type { ChangeEventHandler } from 'react';
 import { useEffect, useState } from 'react';
-import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, hasRoute } from '~/firebase';
+import { useUser } from '~/utils/auth';
 import {
   getPlaceDetails,
   getPredictions,
@@ -22,7 +16,7 @@ export default function Index() {
     directionsRenderer?: google.maps.DirectionsRenderer;
   }>();
 
-  const [user] = useAuthState(auth);
+  const user = useUser();
   const [userLocation] = useWatchLocation();
 
   const [pickupFocused, setPickupFocused] = useState(false);
@@ -41,19 +35,6 @@ export default function Index() {
   const [places, setPlaces] = useState<
     google.maps.places.AutocompletePrediction[]
   >([]);
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!user) return;
-    async function checkRoute() {
-      if (await hasRoute(user?.uid ?? '')) {
-        navigate('/walk/route');
-      }
-    }
-
-    checkRoute();
-  }, [user, navigate]);
 
   useEffect(() => {
     if (!map || !goo) return;
@@ -108,8 +89,6 @@ export default function Index() {
     );
   };
 
-  if (!user) return null;
-
   return (
     <Form
       className="flex flex-col h-full overflow-y-auto"
@@ -129,7 +108,7 @@ export default function Index() {
 
       <div className="space-y-5 pb-5">
         <h1 className="font-bold text-2xl text-slate-800">
-          Howdy, {user.displayName}
+          Howdy, {user.name}
         </h1>
         <div>
           <div className="relative">
@@ -238,8 +217,11 @@ export default function Index() {
       </div>
       <div className="pt-4 border-t border-t-slate-300 mt-auto pb-5">
         <button
-          className="rounded-full p-3 font-semibold hover:bg-indigo-500 bg-indigo-400 text-white w-full"
+          className="rounded-full p-3 font-semibold hover:bg-indigo-600 bg-indigo-500 text-white w-full disabled:bg-indigo-300 disabled:cursor-not-allowed"
           type="submit"
+          disabled={
+            !(searchParams.get('origin') && searchParams.get('destination'))
+          }
         >
           Details
         </button>
