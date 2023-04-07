@@ -7,7 +7,9 @@ import { getServerConfig } from '~/config';
 let firebaseAuth: FirebaseAuth;
 export function getAuth() {
   if (!firebaseAuth) {
-    firebaseAuth = new FirebaseAuth(getServerConfig());
+    const config = getServerConfig();
+    console.log(config);
+    firebaseAuth = new FirebaseAuth(config);
   }
 
   return firebaseAuth;
@@ -17,6 +19,7 @@ let firestoreClient: FirestoreClient;
 export function getFirestore() {
   if (!firestoreClient) {
     const config = getServerConfig();
+    console.log(config);
     const url = `https://firestore.googleapis.com/v1beta1/projects/${config.projectId}/databases/(default)/documents`;
     firestoreClient = new FirestoreClient(config, url);
   }
