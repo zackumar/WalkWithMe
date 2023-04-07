@@ -17,10 +17,10 @@ export const getServerConfig = () => {
   const context = getContext() as any;
   const config = {
     apiKey: API_KEY,
-    projectId: (context.PROJECT_ID as string) ?? 'YOUR_PROJECT_ID',
-    privateKeyId: (context.PRIVATE_KEY_ID as string) ?? 'YOUR_PRIVATE_KEY_ID',
-    privateKey: (context.PRIVATE_KEY as string) ?? 'YOU_PRIVATE_KEY',
-    clientEmail: (context.CLIENT_EMAIL as string) ?? 'YOUR_CLIENT_EMAIL',
+    projectId: context.PROJECT_ID as string,
+    privateKeyId: context.PRIVATE_KEY_ID as string,
+    privateKey: context.PRIVATE_KEY as string,
+    clientEmail: context.CLIENT_EMAIL as string,
     cache: context.FIREBASE,
   };
 
