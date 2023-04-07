@@ -134,7 +134,7 @@ export async function getPredictions(
         input: locQuery,
         sessionToken: sessionToken,
         location: location,
-        radius: 10000,
+        radius: location ? 10000 : undefined,
       },
       (predictions, status) => {
         if (status === goo.maps.places.PlacesServiceStatus.OK) {

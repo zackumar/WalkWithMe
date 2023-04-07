@@ -75,6 +75,13 @@ export async function getRoutes() {
   return routes;
 }
 
+export async function doesRouteExist(routeId: string) {
+  const docRef = doc(db, 'routes', routeId);
+  const docSnap = await getDoc(docRef);
+
+  return docSnap.exists();
+}
+
 export async function deleteRoute(routeId: string) {
   await deleteDoc(doc(db, 'routes', routeId));
 }
