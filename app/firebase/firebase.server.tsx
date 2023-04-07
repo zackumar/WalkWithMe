@@ -2,14 +2,14 @@
 import { FirebaseAuth } from './firebase-auth';
 import { FirestoreClient } from './firebase-firestore';
 import type { Geopoint } from './jsonToFirestore';
+import type { AppLoadContext } from '@remix-run/cloudflare';
 import { getServerConfig } from '~/config';
-import { getContext } from '~/context.server';
 
 let firebaseAuth: FirebaseAuth;
-export function getAuth() {
+export function getAuth(context?: AppLoadContext) {
   if (!firebaseAuth) {
-    const context = getContext();
-    const config = getServerConfig(context);
+    console.log('context', context);
+    const config = getServerConfig(context!);
     firebaseAuth = new FirebaseAuth(config);
   }
 
@@ -17,10 +17,9 @@ export function getAuth() {
 }
 
 let firestoreClient: FirestoreClient;
-export function getFirestore() {
+export function getFirestore(context?: AppLoadContext) {
   if (!firestoreClient) {
-    const context = getContext();
-    const config = getServerConfig(context);
+    const config = getServerConfig(context!);
     const url = `https://firestore.googleapis.com/v1beta1/projects/${config.projectId}/databases/(default)/documents`;
     firestoreClient = new FirestoreClient(config, url);
   }
