@@ -1,27 +1,26 @@
-import { getContext } from './context.server';
+import type { AppLoadContext } from '@remix-run/cloudflare';
 
-export const API_KEY = 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U';
+export const API_KEY = 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U'; // Your API Key
 
 export const firebaseConfig = {
   apiKey: API_KEY,
-  authDomain: 'rowdybuddy.firebaseapp.com',
-  projectId: 'rowdybuddy',
-  storageBucket: 'rowdybuddy.appspot.com',
-  messagingSenderId: '3773405946',
-  appId: '1:3773405946:web:9ea86ff9a57a1af3b7c743',
-  measurementId: 'G-T085NK33L2',
+  authDomain: 'rowdybuddy.firebaseapp.com', // Your Auth Domain
+  projectId: 'rowdybuddy', // Your Project ID
+  storageBucket: 'rowdybuddy.appspot.com', // Your Storage Bucket
+  messagingSenderId: '3773405946', // Your Messaging Sender ID
+  appId: '1:3773405946:web:9ea86ff9a57a1af3b7c743', // Your App ID
+  measurementId: 'G-T085NK33L2', // Your Measurement ID
 };
 
-export const getServerConfig = () => {
+export const getServerConfig = (context: AppLoadContext) => {
   //Cloudflare Workers uses context rather than process.env like node
-  const context = getContext() as any;
   const config = {
     apiKey: API_KEY,
-    projectId: (context.PROJECT_ID as string) ?? 'YOUR_PROJECT_ID',
-    privateKeyId: (context.PRIVATE_KEY_ID as string) ?? 'YOUR_PRIVATE_KEY_ID',
-    privateKey: (context.PRIVATE_KEY as string) ?? 'YOU_PRIVATE_KEY',
-    clientEmail: (context.CLIENT_EMAIL as string) ?? 'YOUR_CLIENT_EMAIL',
-    cache: context.FIREBASE,
+    projectId: context.PROJECT_ID as string, // Your Project ID
+    privateKeyId: context.PRIVATE_KEY_ID as string, // Your Private Key ID
+    privateKey: context.PRIVATE_KEY as string, // Your Private Key
+    clientEmail: context.CLIENT_EMAIL as string, // Your Client Email
+    cache: context.FIREBASE as KVNamespace, // Cloudflare KV Namespace
   };
 
   return config;
