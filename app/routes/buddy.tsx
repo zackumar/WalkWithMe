@@ -67,11 +67,38 @@ export default function BuddySystem() {
 
   const [eta, setEta] = useState('');
 
+  const [alertMarkers, setAlertMarkers] = useState<
+    { routeId: string; marker: google.maps.Marker }[]
+  >([]);
+
   useEffect(() => {
     setInterval(() => {
       if (!routeId) {
         getRoutes().then((routes) => {
           setRoutes(routes);
+          console.log(routes);
+          alertMarkers.map((alertMarker) => alertMarker.marker.setMap(null));
+          routes.forEach((route: any) => {
+            if (route.alert) {
+              const marker = new google.maps.Marker({
+                position: {
+                  lat: route.currentLoc.latitude,
+                  lng: route.currentLoc.longitude,
+                },
+                icon: {
+                  url: "data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cg clip-path='url(%23clip0_6_2)'%3E%3Cpath d='M50 100C77.6142 100 100 77.6142 100 50C100 22.3858 77.6142 0 50 0C22.3858 0 0 22.3858 0 50C0 77.6142 22.3858 100 50 100Z' fill='white'/%3E%3Cpath d='M50.5 93C73.9721 93 93 73.9721 93 50.5C93 27.0279 73.9721 8 50.5 8C27.0279 8 8 27.0279 8 50.5C8 73.9721 27.0279 93 50.5 93Z' fill='%23FF0000'/%3E%3Cpath d='M50 22V54' stroke='white' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M50 81L50 77' stroke='white' stroke-width='10' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/g%3E%3Cdefs%3E%3CclipPath id='clip0_6_2'%3E%3Crect width='100' height='100' fill='white'/%3E%3C/clipPath%3E%3C/defs%3E%3C/svg%3E%0A",
+                  scaledSize: new google.maps.Size(40, 40),
+                },
+                map: map,
+                zIndex: 1000,
+                title: 'Alert',
+              });
+              setAlertMarkers((prev) => [
+                ...prev,
+                { routeId: route.id, marker },
+              ]);
+            }
+          });
         });
       } else {
         doesRouteExist(routeId).then((exists) => {
@@ -82,7 +109,7 @@ export default function BuddySystem() {
         });
       }
     }, 2000);
-  }, [routeId, directionsRenderer]);
+  }, [routeId, directionsRenderer, map]);
 
   useEffect(() => {
     if (!goo || !map) return;

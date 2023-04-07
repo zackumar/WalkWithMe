@@ -21,6 +21,7 @@ import {
   getDocs,
   updateDoc,
   getDoc,
+  GeoPoint,
 } from 'firebase/firestore';
 import { firebaseConfig } from '~/config';
 
@@ -144,10 +145,15 @@ export async function isRouteFinished(routeId: string) {
   return !!data?.finished;
 }
 
-export async function sendAlert(routeId: string, currentLoc: string) {
+export async function sendAlert(
+  routeId: string,
+  currentLoc: google.maps.LatLng,
+  currentLocName: string
+) {
   await updateDoc(doc(db, 'routes', routeId), {
     alert: true,
-    currentLoc,
+    currentLoc: new GeoPoint(currentLoc.lat(), currentLoc.lng()),
+    currentLocName,
   });
 }
 
