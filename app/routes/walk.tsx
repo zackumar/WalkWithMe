@@ -8,13 +8,13 @@ import { getUserId } from '~/session.server';
 import { useOptionalUser } from '~/utils/auth';
 import { useGoogleMap, useWatchLocation } from '~/utils/mapUtils';
 
-export const loader: LoaderFunction = async ({ request }) => {
+export const loader: LoaderFunction = async ({ request, context }) => {
   const pathname = new URL(request.url).pathname;
-  const user = (await getUserId(request)) as any;
+  const user = (await getUserId(request, context)) as any;
   if (
     pathname !== '/walk/route' &&
     user &&
-    (await hasRoute(user?.user_id ?? ''))
+    (await hasRoute(context, user?.user_id ?? ''))
   ) {
     return redirect('/walk/route');
   }

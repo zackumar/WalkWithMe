@@ -14,7 +14,7 @@ import { requireUserId } from '~/session.server';
 import { useUser } from '~/utils/auth';
 import { getRoute, secondsToEta } from '~/utils/mapUtils';
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request, context }) => {
   const formData = await request.formData();
   const origin = formData.get('origin') as string;
   const destination = formData.get('destination') as string;
@@ -22,7 +22,7 @@ export const action: ActionFunction = async ({ request }) => {
   const destinationName = formData.get('destinationName') as string;
   const eta = formData.get('eta') as unknown as number;
 
-  const user = (await requireUserId(request)) as any;
+  const user = (await requireUserId(request, context)) as any;
 
   invariant(origin, 'Origin is required');
   invariant(destination, 'Destination is required');
@@ -42,6 +42,7 @@ export const action: ActionFunction = async ({ request }) => {
   );
 
   await addRoute(
+    context,
     user.user_id,
     user.name,
     originGeopoint,

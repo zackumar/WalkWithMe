@@ -109,7 +109,7 @@ export default function BuddySystem() {
         });
       }
     }, 2000);
-  }, [routeId, directionsRenderer, map]);
+  }, [routeId, directionsRenderer, map, alertMarkers]);
 
   useEffect(() => {
     if (!goo || !map) return;

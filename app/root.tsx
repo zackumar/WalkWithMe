@@ -1,5 +1,4 @@
 import { setContext } from './context.server';
-import { getAuth, getFirestore } from './firebase/firebase.server';
 import { getUserId } from './session.server';
 import type {
   LinksFunction,
@@ -29,11 +28,9 @@ export const meta: MetaFunction = () => ({
 
 export const loader: LoaderFunction = async ({ request, context }) => {
   setContext(context);
-  getFirestore(context);
-  getAuth(context);
 
   return json({
-    user: await getUserId(request),
+    user: await getUserId(request, context),
   });
 };
 

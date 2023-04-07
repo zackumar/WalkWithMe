@@ -2,12 +2,13 @@ import type { ActionFunction } from '@remix-run/cloudflare';
 import { redirect } from '@remix-run/cloudflare';
 import { Link, useFetcher, useSearchParams } from '@remix-run/react';
 import { signInWithPopup } from 'firebase/auth';
+import { addDoc, collection, getDocs, query, where } from 'firebase/firestore';
 import invariant from 'tiny-invariant';
-import { auth, googleProvider } from '~/firebase/firebase';
+import { auth, db, googleProvider } from '~/firebase/firebase';
 import { getAuth } from '~/firebase/firebase.server';
 import { session } from '~/session.server';
 
-export const action: ActionFunction = async ({ request }) => {
+export const action: ActionFunction = async ({ request, context }) => {
   const form = await request.formData();
   const idToken = form.get('idToken') as string;
   const redirectTo = form.get('redirectTo') as string;
@@ -15,9 +16,9 @@ export const action: ActionFunction = async ({ request }) => {
   invariant(idToken, 'idToken is required');
 
   // Verify the idToken is actually valid
-  await getAuth().verifyIdToken(idToken);
+  await getAuth(context).verifyIdToken(idToken);
 
-  const jwt = await getAuth().createSessionCookie(idToken);
+  const jwt = await getAuth(context).createSessionCookie(idToken);
 
   return redirect(redirectTo, {
     headers: {
@@ -36,6 +37,17 @@ export default function Login() {
   const signInWithGoogle = async () => {
     try {
       const res = await signInWithPopup(auth, googleProvider);
+      const user = res.user;
+      const q = query(collection(db, 'users'), where('uid', '==', user.uid));
+      const docs = await getDocs(q);
+      if (docs.docs.length === 0) {
+        await addDoc(collection(db, 'users'), {
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL,
+        });
+      }
       fetcher.submit(
         { idToken: await res.user.getIdToken(), redirectTo },
         { method: 'post' }

@@ -6,7 +6,7 @@ import type { AppLoadContext } from '@remix-run/cloudflare';
 import { getServerConfig } from '~/config';
 
 let firebaseAuth: FirebaseAuth;
-export function getAuth(context?: AppLoadContext) {
+export function getAuth(context: AppLoadContext) {
   if (!firebaseAuth) {
     console.log('context', context);
     const config = getServerConfig(context!);
@@ -17,7 +17,7 @@ export function getAuth(context?: AppLoadContext) {
 }
 
 let firestoreClient: FirestoreClient;
-export function getFirestore(context?: AppLoadContext) {
+export function getFirestore(context: AppLoadContext) {
   if (!firestoreClient) {
     const config = getServerConfig(context!);
     const url = `https://firestore.googleapis.com/v1beta1/projects/${config.projectId}/databases/(default)/documents`;
@@ -26,13 +26,13 @@ export function getFirestore(context?: AppLoadContext) {
   return firestoreClient;
 }
 
-export async function hasRoute(userId: string) {
-  const routes = await getRouteFromId(userId);
+export async function hasRoute(context: AppLoadContext, userId: string) {
+  const routes = await getRouteFromId(context, userId);
   return routes;
 }
 
-export async function getRouteFromId(userId: string) {
-  const routes = await getFirestore().runQuery({
+export async function getRouteFromId(context: AppLoadContext, userId: string) {
+  const routes = await getFirestore(context).runQuery({
     structuredQuery: {
       from: [
         {
@@ -57,6 +57,7 @@ export async function getRouteFromId(userId: string) {
 }
 
 export async function addRoute(
+  context: AppLoadContext,
   userId: string,
   displayName: string,
   origin: Geopoint,
@@ -64,7 +65,7 @@ export async function addRoute(
   destination: Geopoint,
   destinationName: string
 ) {
-  const user = await getFirestore().runQuery({
+  const user = await getFirestore(context).runQuery({
     structuredQuery: {
       from: [
         {
@@ -85,7 +86,7 @@ export async function addRoute(
     },
   });
 
-  return await getFirestore().addDocument('routes', {
+  return await getFirestore(context).addDocument('routes', {
     userId,
     displayName,
     origin,

@@ -1,4 +1,5 @@
 import { getAuth } from './firebase/firebase.server';
+import type { AppLoadContext } from '@remix-run/cloudflare';
 import { createCookie, redirect } from '@remix-run/cloudflare';
 
 export const session = createCookie('session', {
@@ -6,17 +7,18 @@ export const session = createCookie('session', {
   path: '/',
 });
 
-export async function getUserId(request: Request) {
+export async function getUserId(request: Request, context: AppLoadContext) {
   const jwt = await session.parse(request.headers.get('Cookie'));
   if (!jwt) return null;
-  return await getAuth().verifySessionCookie(jwt);
+  return await getAuth(context).verifySessionCookie(jwt);
 }
 
 export async function requireUserId(
   request: Request,
+  context: AppLoadContext,
   redirectTo: string = new URL(request.url).pathname
 ) {
-  const userId = await getUserId(request);
+  const userId = await getUserId(request, context);
   if (!userId) {
     const searchParams = new URLSearchParams([['redirectTo', redirectTo]]);
     throw redirect(`/login?${searchParams}`);

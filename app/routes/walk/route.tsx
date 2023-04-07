@@ -20,9 +20,9 @@ import {
   getRoute,
 } from '~/utils/mapUtils';
 
-export const loader: LoaderFunction = async ({ request }) => {
-  const user = (await requireUserId(request)) as any;
-  const route = await getRouteFromId(user.user_id);
+export const loader: LoaderFunction = async ({ request, context }) => {
+  const user = (await requireUserId(request, context)) as any;
+  const route = await getRouteFromId(context, user.user_id);
   if (!route) {
     return redirect('/walk');
   }
