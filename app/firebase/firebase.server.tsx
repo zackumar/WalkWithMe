@@ -1,24 +1,13 @@
 //https://blog.cloudflare.com/api-at-the-edge-workers-and-firestore/
-import type { FirebaseConfig } from './firebase-auth';
 import { FirebaseAuth } from './firebase-auth';
-import type { GCPClientCreds } from './firebase-firestore';
 import { FirestoreClient } from './firebase-firestore';
 import type { Geopoint } from './jsonToFirestore';
-import { getContext } from '~/context.server';
+import { getServerConfig } from '~/config';
 
 let firebaseAuth: FirebaseAuth;
 export function getAuth() {
   if (!firebaseAuth) {
-    const context = getContext() as any;
-    const config: FirebaseConfig = {
-      apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
-      projectId: context.PROJECT_ID as string,
-      privateKey: context.PRIVATE_KEY as string,
-      clientEmail: context.CLIENT_EMAIL as string,
-      cache: context.FIREBASE,
-    };
-
-    firebaseAuth = new FirebaseAuth(config);
+    firebaseAuth = new FirebaseAuth(getServerConfig());
   }
 
   return firebaseAuth;
@@ -27,13 +16,7 @@ export function getAuth() {
 let firestoreClient: FirestoreClient;
 export function getFirestore() {
   if (!firestoreClient) {
-    const context = getContext();
-    const config: GCPClientCreds = {
-      projectId: context.PROJECT_ID as string,
-      privateKeyId: context.PRIVATE_KEY_ID as string,
-      privateKey: context.PRIVATE_KEY as string,
-      clientEmail: context.CLIENT_EMAIL as string,
-    };
+    const config = getServerConfig();
     const url = `https://firestore.googleapis.com/v1beta1/projects/${config.projectId}/databases/(default)/documents`;
     firestoreClient = new FirestoreClient(config, url);
   }

@@ -1,9 +1,10 @@
 import { Loader } from '@googlemaps/js-api-loader';
 import type { RefObject } from 'react';
 import { useEffect, useState } from 'react';
+import { API_KEY } from '~/config';
 
 const loader = new Loader({
-  apiKey: 'AIzaSyA_ee-H2hLyeiL2TZiFnrAIbGtUqv_1u7U',
+  apiKey: API_KEY,
   version: 'weekly',
   libraries: ['places'],
 });
