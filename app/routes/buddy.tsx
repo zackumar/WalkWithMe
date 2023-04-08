@@ -61,7 +61,7 @@ export default function BuddySystem() {
     }
   }, [location, goo, map, marker]);
 
-  const [routeId, setRouteId] = useState('');
+  const [routeId, setRouteId] = useState<string | undefined>(undefined);
   const [directionsRenderer, setDirectionsRenderer] =
     useState<google.maps.DirectionsRenderer>();
 
@@ -72,14 +72,29 @@ export default function BuddySystem() {
   >([]);
 
   useEffect(() => {
-    setInterval(() => {
-      if (!routeId) {
-        getRoutes().then((routes) => {
-          setRoutes(routes);
-          console.log(routes);
-          alertMarkers.map((alertMarker) => alertMarker.marker.setMap(null));
-          routes.forEach((route: any) => {
-            if (route.alert) {
+    const interval = setInterval(() => {
+      getRoutes().then((routes) => {
+        setRoutes(routes);
+
+        alertMarkers.forEach((marker) => {
+          if (!routes.find((route: any) => route.id === marker.routeId)) {
+            marker.marker.setMap(null);
+          }
+        });
+
+        routes.forEach((route: any) => {
+          if (route.alert) {
+            const marker = alertMarkers.find(
+              (marker) => marker.routeId === route.id
+            );
+            if (marker) {
+              marker.marker.setPosition(
+                new google.maps.LatLng(
+                  route.currentLoc.latitude,
+                  route.currentLoc.longitude
+                )
+              );
+            } else {
               const marker = new google.maps.Marker({
                 position: {
                   lat: route.currentLoc.latitude,
@@ -98,9 +113,10 @@ export default function BuddySystem() {
                 { routeId: route.id, marker },
               ]);
             }
-          });
+          }
         });
-      } else {
+      });
+      if (routeId) {
         doesRouteExist(routeId).then((exists) => {
           if (!exists) {
             directionsRenderer?.setMap(null);
@@ -109,6 +125,8 @@ export default function BuddySystem() {
         });
       }
     }, 2000);
+
+    return () => clearInterval(interval);
   }, [routeId, directionsRenderer, map, alertMarkers]);
 
   useEffect(() => {
@@ -203,7 +221,7 @@ export default function BuddySystem() {
               </div>
             </>
           ) : null}
-          {routeId ? (
+          {routeId && routes.length > 0 ? (
             <>
               <h1 className="text-4xl font-semibold mb-10">
                 Your Runner:{' '}
